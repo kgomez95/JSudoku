@@ -1,0 +1,44 @@
+.jsudoku-board {
+    width: 760px;
+}
+
+.jsudoku-x {
+    display: grid;
+    grid-template-columns: auto auto auto;
+    background-color: black;
+    padding-top: 5px;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+.jsudoku-x:last-child {
+    padding-bottom: 5px;
+}
+
+.jsudoku-y {
+    text-align: center;
+    padding-top: 5px;
+    padding-left: 5px;
+    font-size: 30px;
+
+    display: grid;
+    grid-template-columns: auto auto auto;
+
+    background-color: rgba(255, 255, 255, 0.8);
+    margin-right: 5px;
+}
+
+.jsudoku-y:last-child {
+    margin-right: 0px;
+}
+
+.jsudoku-y-cell {
+    text-align: center;
+    padding: 25px;
+    font-size: 30px;
+    background-color: rgba(255, 255, 255, 0.8);
+    margin-right: 5px;
+    margin-bottom: 5px;
+
+    width: 25px;
+    height: 25px;
+}

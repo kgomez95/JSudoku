@@ -4,14 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <title>JSudoku</title>
+    <link rel="stylesheet" href="./lib/jsudoku/jsudoku.css">
 </head>
 
 <body>
     <h1>JSudoku</h1>
+    <div id="jsudoku"></div>
 
     <script src="./lib/jsudoku/jsudoku.js" type="text/javascript"></script>
     <script type="text/javascript">
-        var game = new JSudoku();
+        var game = new JSudoku('jsudoku');
+        game.newGame();
         console.log(game.board);
     </script>
     <noscript>
