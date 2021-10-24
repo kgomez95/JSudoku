@@ -12,8 +12,9 @@ var JSudoku = (function () {
         _y = 9,
         _rowValues = [1, 2, 3, 4, 5, 6, 7, 8, 9],
         _domId = "",
-        _gameBoard = new Array(_x),
-        _selectedCell = undefined;
+        _gameBoard = undefined,
+        _selectedCell = undefined,
+        _gameEnd = false;
 
     /**
      * @name JSudoku
@@ -39,6 +40,9 @@ var JSudoku = (function () {
      * @description Inicializa el juego.
      */
     JSudoku.prototype.newGame = function () {
+        _gameBoard = undefined;
+        _gameEnd = false
+
         var mainElement = getMainDOM(true);
         var container = document.createElement("div");
         var span = document.createElement("span");
@@ -103,16 +107,76 @@ var JSudoku = (function () {
 
             var menuElement = document.createElement("div");
             var exitButton = document.createElement("button");
+
+            menuElement.classList.add("top-menu");
             exitButton.appendChild(document.createTextNode("Cerrar"));
             exitButton.onclick = _this.newGame;
-
-            // TODO: Crear un botón para comprobar si el tablero es correcto.
-
             menuElement.appendChild(exitButton);
+
+            // Si hay un tablero de juego entonces mostramos el botón para comprobar si el tablero es correcto.
+            if (_gameBoard) {
+                var checkButton = document.createElement("button");
+                checkButton.appendChild(document.createTextNode("Comprobar tablero"));
+                checkButton.onclick = checkGameBoard;
+
+                menuElement.appendChild(checkButton);
+            }
+
             mainElement.appendChild(menuElement);
         }
 
         return mainElement;
+    }
+
+    /**
+     * @name checkGameBoard
+     * @description Comprueba si el tablero de juego es válido o no.
+     */
+    function checkGameBoard() {
+        var x = 0,
+            y = 0,
+            isValid = true;
+        
+        do {
+            y = 0;
+
+            do {
+                var cell = document.querySelectorAll("[x='" + x + "'][y='" + y + "']");
+
+                if (_gameBoard[x][y] != _this.board[x][y]) {
+                    if (cell[0]) cell[0].classList.add("error");
+
+                    isValid = false;
+                }
+                else if (cell[0]) cell[0].classList.remove("error");
+
+                y++;
+            } while (y < _y);
+
+            x++;
+        } while (x < _x);
+
+        if (isValid) gameOver();
+    }
+
+    /**
+     * @name gameOver
+     * @description Muestra el mensaje de victoria y finaliza el juego.
+     */
+    function gameOver() {
+        if (!_gameEnd) {
+            _gameEnd = true;
+            
+            var mainElement = getMainDOM(false);
+            var messageContainer = document.createElement("div");
+            var spanElement = document.createElement("span");
+
+            messageContainer.classList.add("victory-menu");
+
+            spanElement.appendChild(document.createTextNode("¡Victoria!"));
+            messageContainer.appendChild(spanElement);
+            mainElement.insertBefore(messageContainer, mainElement.firstChild);
+        }
     }
 
     /**
