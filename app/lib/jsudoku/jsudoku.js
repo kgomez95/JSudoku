@@ -11,7 +11,9 @@ var JSudoku = (function () {
         _x = 9,
         _y = 9,
         _rowValues = [1, 2, 3, 4, 5, 6, 7, 8, 9],
-        _domId = "";
+        _domId = "",
+        _gameBoard = new Array(_x),
+        _selectedCell = undefined;
 
     /**
      * @name JSudoku
@@ -66,10 +68,8 @@ var JSudoku = (function () {
      * @description Inicializa una partida en modo fácil.
      */
     function startEasyGame() {
-        var board = copyBoard(3);
-
         initBoard();
-        createBoardView(board);
+        createBoardView(copyBoard(3));
     }
 
     /**
@@ -77,10 +77,8 @@ var JSudoku = (function () {
      * @description Inicializa una partida en modo normal.
      */
     function startNormalGame() {
-        var board = copyBoard(4);
-
         initBoard();
-        createBoardView(board);
+        createBoardView(copyBoard(4));
     }
 
     /**
@@ -88,10 +86,8 @@ var JSudoku = (function () {
      * @description Inicializa una partida en modo normal.
      */
     function startHardGame() {
-        var board = copyBoard(6);
-
         initBoard();
-        createBoardView(board);
+        createBoardView(copyBoard(6));
     }
 
     /**
@@ -101,9 +97,34 @@ var JSudoku = (function () {
      */
     function getMainDOM(empty) {
         var mainElement = document.getElementById(_domId);
-        mainElement.classList.add("jsudoku-board");
-        if (empty) mainElement.innerHTML = "";
+
+        if (empty) {
+            mainElement.innerHTML = "";
+
+            var menuElement = document.createElement("div");
+            var exitButton = document.createElement("button");
+            exitButton.appendChild(document.createTextNode("Cerrar"));
+            exitButton.onclick = _this.newGame;
+
+            // TODO: Crear un botón para comprobar si el tablero es correcto.
+
+            menuElement.appendChild(exitButton);
+            mainElement.appendChild(menuElement);
+        }
+
         return mainElement;
+    }
+
+    /**
+     * @name cloneBoard
+     * @returns Retorna una copia del tablero con sus valores.
+     */
+    function cloneBoard() {
+        var rows = new Array(_x);
+        for (var x = 0; x < _x; x++) {
+            rows[x] = _this.board[x].slice();
+        }
+        return rows;
     }
 
     /**
@@ -113,7 +134,7 @@ var JSudoku = (function () {
      * @returns Retorna la copia del tablero modificada.
      */
     function copyBoard(exclude) {
-        var board = _this.board.slice();
+        var board = cloneBoard();
 
         if (exclude < 0) exclude = 0;
         else if (exclude > _y) exclude = _y;
@@ -130,6 +151,8 @@ var JSudoku = (function () {
             });
         }
 
+        // Guardamos el tablero copiado y lo retornamos.
+        _gameBoard = board;
         return board;
     }
 
@@ -144,8 +167,9 @@ var JSudoku = (function () {
         }
 
         // Inicializamos los valores del tablero.
-        var isValid = true;
-        for (var x = 0; x < _x; (isValid) ? x++ : x = x) {
+        var isValid = true,
+            cellAttempts = 0;
+        for (var x = 0; x < _x; x = initBoardIncreaseX(x, isValid, cellAttempts)) {
             // Valores disponibles para la fila.
             var rowValues = _rowValues.slice();
 
@@ -157,6 +181,9 @@ var JSudoku = (function () {
                 var value = 0;
                 var attempts = 0;
                 isValid = false;
+
+                // Inicializamos los intentos de comprobación en las celdas 3x3.
+                cellAttempts = 0;
 
                 do {
                     // Cogemos un elemento aleatorio de la lista de valores disponibles de la fila.
@@ -172,16 +199,22 @@ var JSudoku = (function () {
                     });
 
                     if (isValid) {
-                        // TODO: Hay que mejorar la validación. No puede haber el mismo número dentro del grupo de 3x3 celdas.
+                        // Si no existe el valor en las celdas 3x3 entonces es válido.
+                        isValid = !hasNumberCol(x, y, value);
 
+                        if (!isValid) {
+                            // Aumentamos el contedor de intentos de las celdas 3x3.
+                            cellAttempts++;
+                        }
                     }
-
-                    // Aumentamos el contador de intentos.
-                    attempts++;
+                    else {
+                        // Aumentamos el contador de intentos.
+                        attempts++;
+                    }
 
                     // Si el valor no es válido se volverá a coger otro valor disponible (así hasta un máximo de 20 intentos). Si llegamos a los 20 intentos y todavía no hemos
                     // conseguido un valor válido, significa que esta fila no tiene un orden correcto en los valores y saldremos del bucle, pero sin introducir ningún valor.
-                } while (!isValid && attempts < 20);
+                } while (!isValid && attempts < 20 && cellAttempts < 20);
 
                 if (isValid) {
                     // Si el valor a introducir es válido lo quitamos de la lista de valores disponibles y lo añadimos al tablero.
@@ -193,6 +226,88 @@ var JSudoku = (function () {
     }
 
     /**
+     * @name initBoardIncreaseX
+     * @description Incrementa el contador x, lo mantiene igual o lo decrementa dependiendo de si el valor de la celda es válido o no.
+     * @param x - Contador actual.
+     * @param isValid - Indica si el valor de la celda es válido a no.
+     * @param cellAttempts - Intentos de poner el valor en el grupo de celdas 3x3.
+     * @returns Retorna el contador x.
+     */
+    function initBoardIncreaseX(x, isValid, cellAttempts) {
+        if (cellAttempts < 20) {
+            return (isValid) ? ++x : x;
+        }
+        // NOTE: Si se han superado los intentos de celdas restablecemos el contador x dependiendo de la posición en la que se encuentre y restablecemos las celdas.
+        else if (x < 3) {
+            for (var i = 0; i <= x; i++) _this.board[i] = new Array(_y);
+            return 0;
+        }
+        else if (x < 6) {
+            for (var i = 3; i <= x; i++) _this.board[i] = new Array(_y);
+            return 3;
+        }
+        else {
+            for (var i = 6; i <= x; i++) _this.board[i] = new Array(_y);
+            return 6;
+        }
+    }
+
+    /**
+     * @name hasNumberCol
+     * @description Comprueba si el valor proporcionado se encuentra dentro de sus celdas 3x3.
+     * @param xPos - Posición X actual.
+     * @param yPos - Posición Y actual.
+     * @param value - Valor a comprobar.
+     * @returns Retorna "true" en caso de que el valor ya se encuentre dentro de las celdas 3x3 o "false" en caso de que todavía no esté.
+     */
+    function hasNumberCol(xPos, yPos, value) {
+        var startX = 0,
+            endX = 0,
+            startY = 0,
+            endY = 0,
+            hasNumber = false;
+
+        // Comprobamos la X.
+        if (xPos < 3) {
+            startX = 0;
+            endX = 3;
+        }
+        else if (xPos < 6) {
+            startX = 3;
+            endX = 6;
+        }
+        else {
+            startX = 6;
+            endX = 9;
+        }
+
+        // Comprobamos la Y.
+        if (yPos < 3) {
+            startY = 0;
+            endY = 3;
+        }
+        else if (yPos < 6) {
+            startY = 3;
+            endY = 6;
+        }
+        else {
+            startY = 6;
+            endY = 9;
+        }
+
+        // Comprobamos si el valor existe en el grupo de 3x3.
+        for (; (startX < endX && !hasNumber); startX++) {
+            for (var y = startY; (y < endY && !hasNumber); y++) {
+                if (_this.board[startX][y] === value) {
+                    hasNumber = true;
+                }
+            }
+        }
+
+        return hasNumber;
+    }
+
+    /**
      * @name createBoardView
      * @description Crea el tablero en pantalla.
      * @param board - Tablero a mostrar en pantalla.
@@ -200,6 +315,8 @@ var JSudoku = (function () {
     function createBoardView(board) {
         // Busca el elemento contenedor principal, le asigna la clase del tablero y lo vacía.
         var mainElement = getMainDOM(true);
+        var gameBoardElement = document.createElement("div");
+        gameBoardElement.classList.add("jsudoku-board");
 
         for (var x = 0; x < 3; x++) {
             // Creamos la fila y le asignamos la clase.
@@ -236,6 +353,14 @@ var JSudoku = (function () {
                     yCellElement.setAttribute("x", xPos);
                     yCellElement.setAttribute("y", yPos);
 
+                    // Si la celda no contiene un número entonces es una celda modificable.
+                    if (isNaN(parseInt(_gameBoard[xPos][yPos]))) {
+                        yCellElement.onclick = selectCell;
+                    }
+                    else {
+                        yCellElement.classList.add("disabled");
+                    }
+
                     // Mostramos el valor en la celda.
                     yCellElement.appendChild(document.createTextNode(board[xPos][yPos]));
 
@@ -247,8 +372,53 @@ var JSudoku = (function () {
                 boardXElement.appendChild(boardYElement);
             }
 
-            // Añadimos la fila al contenedor principal.
-            mainElement.appendChild(boardXElement);
+            // Añadimos la fila al contenedor del tablero.
+            gameBoardElement.appendChild(boardXElement);
+        }
+
+        // Añadimos el contenedor del tablero al elemento principal.
+        mainElement.appendChild(gameBoardElement);
+
+        // Creamos el contenedor de opciones para asignar un valor a la celda seleccionada.
+        var optionsContainer = document.createElement("div");
+        optionsContainer.classList.add("jsudoku-options");
+
+        for (var i = 0; i < _rowValues.length; i++) {
+            var cell = document.createElement("div");
+            cell.classList.add("jsudoku-options-cell");
+            cell.appendChild(document.createTextNode(i + 1));
+            cell.onclick = setCellValue;
+
+            optionsContainer.appendChild(cell);
+        }
+
+        // Añadimos el contenedor de opciones al elemento principal.
+        mainElement.appendChild(optionsContainer);
+    }
+
+    /**
+     * @name selectCell
+     * @description Función que se ejecuta al hacer clic en una celda del tablero de juego.
+     */
+    function selectCell() {
+        if (_selectedCell) {
+            _selectedCell.classList.remove("selected");
+        }
+
+        _selectedCell = this;
+        _selectedCell.classList.add("selected");
+    }
+
+    /**
+     * @name setCellValue
+     * @description Función que se ejecuta al seleccionar una opción con la intención de asignar el valor a la celda seleccionada.
+     */
+    function setCellValue() {
+        if (_selectedCell) {
+            var x = _selectedCell.getAttribute("x"),
+                y = _selectedCell.getAttribute("y");
+            _gameBoard[x][y] = this.innerHTML;
+            _selectedCell.innerHTML = this.innerHTML;
         }
     }
 

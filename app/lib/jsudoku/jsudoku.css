@@ -2,8 +2,20 @@
     width: 760px;
 }
 
+.jsudoku-board .selected {
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+}
+
+.jsudoku-board .disabled {
+    background-color: rgba(0, 0, 0, 0.158);
+    color: black;
+}
+
 .jsudoku-x {
+    display: -ms-grid;
     display: grid;
+    -ms-grid-columns: auto auto auto;
     grid-template-columns: auto auto auto;
     background-color: black;
     padding-top: 5px;
@@ -20,7 +32,9 @@
     padding-left: 5px;
     font-size: 30px;
 
+    display: -ms-grid;
     display: grid;
+    -ms-grid-columns: auto auto auto;
     grid-template-columns: auto auto auto;
 
     background-color: rgba(255, 255, 255, 0.8);
@@ -38,6 +52,32 @@
     background-color: rgba(255, 255, 255, 0.8);
     margin-right: 5px;
     margin-bottom: 5px;
+
+    width: 25px;
+    height: 25px;
+}
+
+.jsudoku-options {
+    display: -ms-grid;
+    display: grid;
+    -ms-grid-columns: auto auto auto auto auto auto auto auto auto;
+    grid-template-columns: auto auto auto auto auto auto auto auto auto;
+    justify-items: center;
+    place-content: space-evenly;
+
+    background-color: black;
+    width: 760px;
+    margin-top: 10px;
+}
+
+.jsudoku-options-cell {
+    text-align: center;
+    padding: 25px;
+    font-size: 30px;
+    background-color: rgba(255, 255, 255, 0.8);
+
+    margin-top: 8px;
+    margin-bottom: 8px;
 
     width: 25px;
     height: 25px;
