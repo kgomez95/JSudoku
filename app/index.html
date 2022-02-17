@@ -13,8 +13,11 @@
 
     <script src="./lib/jsudoku/jsudoku.js" type="text/javascript"></script>
     <script type="text/javascript">
-        var game = new JSudoku('jsudoku');
+        /*var game = new JSudoku('jsudoku');
         game.newGame();
+        console.log(game.board);*/
+        var game = new JSudoku(document.getElementById("jsudoku"));
+        game.createBoard();
         console.log(game.board);
     </script>
     <noscript>
