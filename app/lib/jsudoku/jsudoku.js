@@ -19,6 +19,10 @@
                  * @type {Element}
                  */
                 table: undefined,
+                /**
+                 * @type {EventListener}
+                 */
+                clickEvent: undefined,
 
                 /**
                  * @name initContainer
@@ -42,6 +46,9 @@
                     // Creamos la tabla y la añadimos al contenedor.
                     this.table = w.document.createElement("table");
                     this.container.appendChild(this.table);
+
+                    // Inicializamos los eventos de la tabla.
+                    Dom.createSelectEvent();
                 },
 
                 /**
@@ -51,17 +58,31 @@
                  */
                 paintBoard: function (boardGame) {
                     var tbody = w.document.createElement("tbody");
+                    var groupY = 0;
 
                     for (var y = 0; y < boardGame.length; y++) {
                         var tr = w.document.createElement("tr");
+                        var groupX = 0;
+
+                        if (y > 0 && (y % 3) === 0) {
+                            groupY += 3;
+                        }
 
                         for (var x = 0; x < boardGame[y].length; x++) {
                             var td = w.document.createElement("td");
                             var content = w.document.createElement("div");
 
+                            if ((x % 3) === 0) {
+                                groupX++;
+                            }
+
                             // Creamos el contenido.
                             content.classList.add("content");
                             content.appendChild(w.document.createTextNode(boardGame[y][x]));
+                            content.setAttribute("data-x", x.toString());
+                            content.setAttribute("data-y", y.toString());
+                            content.setAttribute("data-group", (groupY + groupX).toString());
+                            content.setAttribute("data-value", boardGame[y][x]);
 
                             // Si la celda tiene valor entonces bloqueamos su contenido.
                             if (boardGame[y][x]) {
@@ -86,6 +107,120 @@
 
                     this.table.innerHTML = "";
                     this.table.appendChild(tbody);
+                },
+
+                /**
+                 * @name createSelectEvent
+                 * @description Crea el evento para seleccionar las celdas del tablero.
+                 */
+                createSelectEvent: function () {
+                    /**
+                     * @type {Element}
+                     */
+                    var selectedCell = undefined;
+                    /**
+                     * @type {NodeList}
+                     */
+                    var selectedGroup = undefined;
+                    /**
+                     * @type {NodeList}
+                     */
+                    var selectedValues = undefined;
+
+                    /**
+                     * @name selectGroup
+                     * @description Selecciona las celdas de grupo marcadas. 
+                     */
+                    function selectGroup() {
+                        if (!selectedGroup) return;
+
+                        for (var i = 0; i < selectedGroup.length; i++) {
+                            if (selectedCell !== selectedGroup[i]) {
+                                selectedGroup[i].classList.add("selected-group");
+                            }
+                        }
+                    };
+
+                    /**
+                     * @name deselectGroup
+                     * @description Deselecciona las celdas de grupo marcadas. 
+                     */
+                    function deselectGroup() {
+                        if (!selectedGroup) return;
+
+                        for (var i = 0; i < selectedGroup.length; i++) {
+                            if (selectedCell !== selectedGroup[i]) {
+                                selectedGroup[i].classList.remove("selected-group");
+                            }
+                        }
+                    };
+
+                    /**
+                     * @name selectValues
+                     * @description Selecciona las celdas de valores marcadas. 
+                     */
+                    function selectValues() {
+                        if (!selectedValues) return;
+
+                        for (var i = 0; i < selectedValues.length; i++) {
+                            if (selectedCell !== selectedValues[i]) {
+                                selectedValues[i].classList.add("selected-values");
+                            }
+                        }
+                    };
+
+                    /**
+                     * @name deselectValues
+                     * @description Deselecciona las celdas de valores marcadas. 
+                     */
+                    function deselectValues() {
+                        if (!selectedValues) return;
+
+                        for (var i = 0; i < selectedValues.length; i++) {
+                            if (selectedCell !== selectedValues[i]) {
+                                selectedValues[i].classList.remove("selected-values");
+                            }
+                        }
+                    };
+
+                    // Evento click.
+                    this.container.addEventListener("click", function (event) {
+                        if (selectedCell && selectedCell !== event.target) {
+                            // Deseleccionamos la celda anterior, su grupo de celdas y sus celdas con el mismo valor.
+                            selectedCell.classList.remove("selected");
+                            deselectGroup();
+                            deselectValues();
+                        }
+                        else if (selectedCell === event.target) {
+                            // Si es el mismo elemento que el anterior seleccionado entonces salimos del evento.
+                            return;
+                        }
+
+                        // Guardamos la referencia del elemento seleccionado y vaciamos las celdas grupo seleccionadas.
+                        selectedCell = event.target;
+                        selectedGroup = undefined;
+                        selectedValues = undefined;
+
+                        // Si no es una celda lo que hemos seleccionado entonces salimos del evento.
+                        if (selectedCell.className.indexOf("content") === -1) {
+                            return;
+                        }
+
+                        // Marcamos el elemento como seleccionado el elemento.
+                        selectedCell.classList.add("selected");
+
+                        // Cogemos los elementos del grupo, de la fila, de la columna y los seleccionamos.
+                        var group = selectedCell.getAttribute("data-group");
+                        var x = selectedCell.getAttribute("data-x");
+                        var y = selectedCell.getAttribute("data-y");
+                        selectedGroup = w.document.querySelectorAll("[data-group='" + group + "'], [data-x='" + x + "'], [data-y='" + y + "']");
+                        selectGroup();
+
+                        // Cogemos los elementos que tengan el mismo valor que la celda seleccionada y los seleccionamos.
+                        var value = selectedCell.getAttribute("data-value");
+                        selectedValues = w.document.querySelectorAll("[data-value='" + value + "']");
+                        selectValues();
+                    });
                 }
             };
         })();
