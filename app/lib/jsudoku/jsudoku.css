@@ -1,0 +1,75 @@
+/*.jsudoku table tr > td > input {
+    width: 0;
+    outline: none;
+    opacity: 0;
+} */
+
+
+.jsudoku {
+    width: 30%;
+    margin: 0 auto;
+    padding: 5px 0 10px 0;
+}
+
+.jsudoku table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.jsudoku td {
+    width: 11.1%;
+    position: relative;
+    border: 1px solid black;
+    padding: 0;
+    margin: 0;
+}
+.jsudoku td:after {
+    content: "";
+    display: block;
+    margin-top: 100%;
+}
+
+.jsudoku td .content {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: whitesmoke;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-weight: bold;
+    color: red;
+}
+
+.jsudoku td .content.blocked {
+    color: black;
+}
+
+.jsudoku td.l-separator {
+    border-left: 3px solid black;
+}
+.jsudoku td.t-separator {
+    border-top: 3px solid black;
+}
+
+
+@media only screen and (max-width: 1250px) {
+    .jsudoku {
+        width: 40%;
+    }
+}
+
+@media only screen and (max-width: 950px) {
+    .jsudoku {
+        width: 50%;
+    }
+}
+
+@media only screen and (max-width: 600px) {
+    .jsudoku {
+        width: 95%;
+    }
+}

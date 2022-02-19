@@ -10,15 +10,96 @@
 (function (w) {
     w.JSudoku = (function () {
         var Dom = (function () {
-            // TODO: Clase para administrar la parte visual.
             return {
+                /**
+                 * @type {Element}
+                 */
+                container: undefined,
+                /**
+                 * @type {Element}
+                 */
+                table: undefined,
 
+                /**
+                 * @name initContainer
+                 * @description Inicializa los elementos básicos del contenedor.
+                 * @param {Element} container - Contenedor del juego.
+                 */
+                initContainer: function (container) {
+                    if (this.container) return;
+
+                    // Almacenamos el contanador.
+                    this.container = container;
+
+                    // Creamos el título del contenedor.
+                    var h1 = w.document.createElement("h1");
+                    h1.appendChild(w.document.createTextNode("JSudoku"));
+                    
+                    // Añadimos el título y la clase al contenedor.
+                    this.container.classList.add("jsudoku");
+                    this.container.appendChild(h1);
+
+                    // Creamos la tabla y la añadimos al contenedor.
+                    this.table = w.document.createElement("table");
+                    this.container.appendChild(this.table);
+                },
+
+                /**
+                 * @name paintBoard
+                 * @description Pintamos el tablero proporcionado en pantalla.
+                 * @param {Array<any>} boardGame - Tablero de juego.
+                 */
+                paintBoard: function (boardGame) {
+                    var tbody = w.document.createElement("tbody");
+
+                    for (var y = 0; y < boardGame.length; y++) {
+                        var tr = w.document.createElement("tr");
+
+                        for (var x = 0; x < boardGame[y].length; x++) {
+                            var td = w.document.createElement("td");
+                            var content = w.document.createElement("div");
+
+                            // Creamos el contenido.
+                            content.classList.add("content");
+                            content.appendChild(w.document.createTextNode(boardGame[y][x]));
+
+                            // Si la celda tiene valor entonces bloqueamos su contenido.
+                            if (boardGame[y][x]) {
+                                content.classList.add("blocked");
+                            }
+
+                            // Asignamos los separadores de grupo de celdas en caso de que sea necesario.
+                            if (y > 0 && (y % 3) === 0) {
+                                td.classList.add("t-separator");
+                            }
+                            if (x > 0 && (x % 3) === 0) {
+                                td.classList.add("l-separator");
+                            }
+
+                            // Añadimos el contenido a la celda, y la celda a la fila.
+                            td.appendChild(content);
+                            tr.appendChild(td);
+                        }
+
+                        tbody.appendChild(tr);
+                    }
+
+                    this.table.innerHTML = "";
+                    this.table.appendChild(tbody);
+                }
             };
         })();
         
         function Sudoku(container) {
-            // Clase para administrar el juego.
+            if (!container)
+                throw Error("JSudoku -> Es necesario proporcionar un contenedor DOM para inicializar el juego.");
+
+            // Variables públicas.
             this.board = new Array(9);
+            this.gameBoard = new Array(9);
+
+            // Inicializamos los elementos del DOM.
+            Dom.initContainer(container);
         };
 
         /**
@@ -85,6 +166,7 @@
                             // Si el número no se encuentra en la fila ni en la columna lo asignamos, lo borramos del listado de valores a especificar
                             // y reiniciamos el contador de intentos.
                             that.board[y][x] = number;
+                            that.gameBoard[y][x] = number;
                             numbers.splice(index, 1);
                             tries = 20;
                         }
@@ -112,13 +194,16 @@
             function clearCols(yStart, yEnd) {
                 for (var y = yStart; y < yEnd; y++) {
                     that.board[y] = new Array(9);
+                    that.gameBoard[y] = new Array(9);
                 }
             };
 
             // Inicializamos el tablero.
             that.board = new Array(9);
+            that.gameBoard = new Array(9);
             for (var y = 0; y < that.board.length; y++) {
                 that.board[y] = new Array(9);
+                that.gameBoard[y] = new Array(9);
             }
 
             // Rellenamos el tablero con los números.
@@ -131,6 +216,59 @@
                     }
                 }
             }
+        };
+
+        /**
+         * @name emptyGameBoard
+         * @description Vacía la cantidad de celdas recibidas por parámetros del tablero de juego.
+         * @param {number} amountToEmpty - Cantidad de celdas a vaciar.
+         */
+        Sudoku.prototype.emptyGameBoard = function (amountToEmpty) {
+            for (var i = 0; i < amountToEmpty; i++) {
+                // Generamos una posición aleatoria en el tablero.
+                var x = Math.floor(Math.random() * 9);
+                var y = Math.floor(Math.random() * 9);
+
+                if (this.gameBoard[y][x]) {
+                    // Si la celda tiene valor se lo quitamos.
+                    this.gameBoard[y][x] = "";
+                }
+                else {
+                    // Si la celda no tiene valor volvemos a buscar otra celda.
+                    i--;
+                }
+            }
+        };
+
+        /**
+         * @name newGame
+         * @description Crea la instancia de juego con la dificultad proporcionada.
+         * @param {number} difficulty - Dificultad de la partida.
+         */
+        Sudoku.prototype.newGame = function (difficulty) {
+            // Creamos el tablero de juego.
+            this.createBoard();
+
+            // Vaciamos el tablero de juego dependiendo de la dificultad seleccionada.
+            switch (difficulty) {
+                // Fácil.
+                case 0:
+                    this.emptyGameBoard(40);
+                    break;
+                // Normal.
+                case 1:
+                    this.emptyGameBoard(50);
+                    break;
+                // Difícil.
+                case 2:
+                    this.emptyGameBoard(60);
+                    break;
+                default:
+                    throw Error("JSudoku -> Es necesario que especifique una dificultad válida para poder jugar.");
+            }
+
+            // TODO: Pintar el tablero.
+            Dom.paintBoard(this.gameBoard);
         };
     
         return Sudoku;
