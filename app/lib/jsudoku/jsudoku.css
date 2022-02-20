@@ -16,9 +16,19 @@
     user-select: none;
 }
 
+.jsudoku .title > h1 {
+    margin-bottom: 0;
+    font-style: italic;
+}
+
+.jsudoku .title {
+    border-bottom: 3px solid black;
+}
+
 .jsudoku table {
     width: 100%;
     border-collapse: collapse;
+    margin-top: 15px;
 }
 
 .jsudoku td {
@@ -35,7 +45,11 @@
     margin-top: 100%;
 }
 
-.jsudoku td .content {
+.jsudoku td.td-values {
+    width: auto;
+}
+
+.jsudoku td .content, .jsudoku td .content-values {
     position: absolute;
     top: 0;
     bottom: 0;
@@ -72,6 +86,10 @@
 }
 .jsudoku td.t-separator {
     border-top: 3px solid black;
+}
+
+.jsudoku .table-values {
+    margin-top: 15px;
 }
 
 @media only screen and (max-width: 1250px) {

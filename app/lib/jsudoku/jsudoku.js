@@ -20,9 +20,9 @@
                  */
                 table: undefined,
                 /**
-                 * @type {EventListener}
+                 * @type {Element}
                  */
-                clickEvent: undefined,
+                tableValues: undefined,
 
                 /**
                  * @name initContainer
@@ -36,19 +36,48 @@
                     this.container = container;
 
                     // Creamos el título del contenedor.
+                    var titleContainer = w.document.createElement("div");
                     var h1 = w.document.createElement("h1");
+                    titleContainer.classList.add("title");
                     h1.appendChild(w.document.createTextNode("JSudoku"));
-                    
+                    titleContainer.appendChild(h1);
+
                     // Añadimos el título y la clase al contenedor.
                     this.container.classList.add("jsudoku");
-                    this.container.appendChild(h1);
+                    this.container.appendChild(titleContainer);
 
                     // Creamos la tabla y la añadimos al contenedor.
                     this.table = w.document.createElement("table");
                     this.container.appendChild(this.table);
 
+                    // Inicializamos la tabla de valores.
+                    Dom.paintTableValues();
+
                     // Inicializamos los eventos de la tabla.
                     Dom.createSelectEvent();
+                },
+
+                paintTableValues: function () {
+                    this.tableValues = w.document.createElement("table");
+                    var tr = w.document.createElement("tr");
+
+                    for (var i = 0; i < 10; i++) {
+                        var td = w.document.createElement("td");
+                        var contentValues = w.document.createElement("div");
+
+                        // Creamos el contenido.
+                        contentValues.classList.add("content-values");
+                        contentValues.appendChild(w.document.createTextNode((i > 0) ? i.toString() : ""));
+
+                        // Añadimos el contenido a la celda, y la celda a la fila.
+                        td.classList.add("td-values");
+                        td.appendChild(contentValues);
+                        tr.appendChild(td);
+                    }
+
+                    this.tableValues.classList.add("table-values");
+                    this.tableValues.appendChild(tr);
+                    this.container.appendChild(this.tableValues);
                 },
 
                 /**
@@ -224,7 +253,7 @@
                 }
             };
         })();
-        
+
         function Sudoku(container) {
             if (!container)
                 throw Error("JSudoku -> Es necesario proporcionar un contenedor DOM para inicializar el juego.");
@@ -296,7 +325,7 @@
                         // Generamos un índice aleatorio para coger el número a especificar.
                         var index = Math.floor(Math.random() * numbers.length);
                         var number = numbers[index];
-    
+
                         if (isValidCol(x, number) && isValidRow(y, number)) {
                             // Si el número no se encuentra en la fila ni en la columna lo asignamos, lo borramos del listado de valores a especificar
                             // y reiniciamos el contador de intentos.
@@ -405,7 +434,7 @@
             // TODO: Pintar el tablero.
             Dom.paintBoard(this.gameBoard);
         };
-    
+
         return Sudoku;
     })();
 })(window);
