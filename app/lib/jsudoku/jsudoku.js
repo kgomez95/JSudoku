@@ -23,6 +23,10 @@
                  * @type {Element}
                  */
                 tableValues: undefined,
+                /**
+                 * @type {Element}
+                 */
+                selectedCell: undefined,
 
                 /**
                  * @name initContainer
@@ -55,6 +59,7 @@
 
                     // Inicializamos los eventos de la tabla.
                     Dom.createSelectEvent();
+                    Dom.createValueEvent();
                 },
 
                 paintTableValues: function () {
@@ -64,10 +69,12 @@
                     for (var i = 0; i < 10; i++) {
                         var td = w.document.createElement("td");
                         var contentValues = w.document.createElement("div");
+                        var value = (i > 0) ? i.toString() : "";
 
                         // Creamos el contenido.
                         contentValues.classList.add("content-values");
-                        contentValues.appendChild(w.document.createTextNode((i > 0) ? i.toString() : ""));
+                        contentValues.setAttribute("data-value", value);
+                        contentValues.appendChild(w.document.createTextNode(value));
 
                         // Añadimos el contenido a la celda, y la celda a la fila.
                         td.classList.add("td-values");
@@ -89,6 +96,19 @@
                     var tbody = w.document.createElement("tbody");
                     var groupY = 0;
 
+                    /**
+                     * @name createNote
+                     * @description Crea un contenedor nota con el número especificado.
+                     * @param {number} value - Número a especificar en el contenedor nota.
+                     * @returns {Element} Retorna el contenedor nota con el número asignado.
+                     */
+                    function createNote(value) {
+                        var div = w.document.createElement("div");
+                        div.setAttribute("data-value", value.toString());
+                        div.appendChild(w.document.createTextNode(value.toString()));
+                        return div;
+                    };
+
                     for (var y = 0; y < boardGame.length; y++) {
                         var tr = w.document.createElement("tr");
                         var groupX = 0;
@@ -107,7 +127,9 @@
 
                             // Creamos el contenido.
                             content.classList.add("content");
-                            content.appendChild(w.document.createTextNode(boardGame[y][x]));
+                            var span = w.document.createElement("span");
+                            span.appendChild(w.document.createTextNode(boardGame[y][x]));
+                            content.appendChild(span);
                             content.setAttribute("data-x", x.toString());
                             content.setAttribute("data-y", y.toString());
                             content.setAttribute("data-group", (groupY + groupX).toString());
@@ -116,6 +138,21 @@
                             // Si la celda tiene valor entonces bloqueamos su contenido.
                             if (boardGame[y][x]) {
                                 content.classList.add("blocked");
+                            }
+                            else {
+                                var contentNotes = w.document.createElement("div");
+
+                                // Asignamos la clase al contenedor de notas.
+                                contentNotes.classList.add("content-notes");
+
+                                // Creamos los elementos en el contenedor de notas.
+                                for (var i = 1; i <= 9; i++) {
+                                    contentNotes.appendChild(createNote(i));
+                                }
+
+                                // Ocultamos el contenedor de notas y lo añadimos al contenedor del contenido.
+                                contentNotes.style.display = "none";
+                                content.appendChild(contentNotes);
                             }
 
                             // Asignamos los separadores de grupo de celdas en caso de que sea necesario.
@@ -126,7 +163,7 @@
                                 td.classList.add("l-separator");
                             }
 
-                            // Añadimos el contenido a la celda, y la celda a la fila.
+                            // Añadimos el contenido, y la celda a la fila.
                             td.appendChild(content);
                             tr.appendChild(td);
                         }
@@ -143,10 +180,8 @@
                  * @description Crea el evento para seleccionar las celdas del tablero.
                  */
                 createSelectEvent: function () {
-                    /**
-                     * @type {Element}
-                     */
-                    var selectedCell = undefined;
+                    var that = this;
+
                     /**
                      * @type {NodeList}
                      */
@@ -164,7 +199,7 @@
                         if (!selectedGroup) return;
 
                         for (var i = 0; i < selectedGroup.length; i++) {
-                            if (selectedCell !== selectedGroup[i]) {
+                            if (that.selectedCell !== selectedGroup[i]) {
                                 selectedGroup[i].classList.add("selected-group");
                             }
                         }
@@ -178,7 +213,7 @@
                         if (!selectedGroup) return;
 
                         for (var i = 0; i < selectedGroup.length; i++) {
-                            if (selectedCell !== selectedGroup[i]) {
+                            if (that.selectedCell !== selectedGroup[i]) {
                                 selectedGroup[i].classList.remove("selected-group");
                             }
                         }
@@ -192,7 +227,7 @@
                         if (!selectedValues) return;
 
                         for (var i = 0; i < selectedValues.length; i++) {
-                            if (selectedCell !== selectedValues[i]) {
+                            if (that.selectedCell !== selectedValues[i]) {
                                 selectedValues[i].classList.add("selected-values");
                             }
                         }
@@ -206,49 +241,99 @@
                         if (!selectedValues) return;
 
                         for (var i = 0; i < selectedValues.length; i++) {
-                            if (selectedCell !== selectedValues[i]) {
+                            if (that.selectedCell !== selectedValues[i]) {
                                 selectedValues[i].classList.remove("selected-values");
                             }
                         }
                     };
 
                     // Evento click.
-                    this.container.addEventListener("click", function (event) {
-                        if (selectedCell && selectedCell !== event.target) {
-                            // Deseleccionamos la celda anterior, su grupo de celdas y sus celdas con el mismo valor.
-                            selectedCell.classList.remove("selected");
+                    this.table.addEventListener("click", function (event) {
+                        if (that.selectedCell && that.selectedCell !== event.target) {
+                            // Deseleccionamos la celda anterior y su grupo de celdas.
+                            that.selectedCell.classList.remove("selected");
                             deselectGroup();
-                            deselectValues();
-                        }
-                        else if (selectedCell === event.target) {
-                            // Si es el mismo elemento que el anterior seleccionado entonces salimos del evento.
-                            return;
+                            
                         }
 
+                        // Deseleccionamos sus celdas con el mismo valor.
+                        deselectValues();
+
                         // Guardamos la referencia del elemento seleccionado y vaciamos las celdas grupo seleccionadas.
-                        selectedCell = event.target;
+                        that.selectedCell = event.target;
                         selectedGroup = undefined;
                         selectedValues = undefined;
 
-                        // Si no es una celda lo que hemos seleccionado entonces salimos del evento.
-                        if (selectedCell.className.indexOf("content") === -1) {
-                            return;
+                        if (that.selectedCell.className.indexOf("content") === -1) {
+                            // Si no seleccionamos el contenido cogemos el elemento padre.
+                            that.selectedCell = that.selectedCell.parentElement;
+
+                            if (that.selectedCell.className.indexOf("content-notes") > -1) {
+                                // Si la celda tiene la clase "content-notes" necesitamos coger el padre del elemento padre para coger el contenido.
+                                that.selectedCell = that.selectedCell.parentElement;
+                            }
+                        }
+                        else if (that.selectedCell.className.indexOf("content-notes") > -1) {
+                            // Si la celda tiene la clase "content-notes" necesitamos coger el padre del elemento padre para coger el contenido.
+                            that.selectedCell = that.selectedCell.parentElement;
                         }
 
+                        // Si no hay contenido salimos del evento.
+                        if (that.selectedCell.className.indexOf("content") === -1) return;
+
                         // Marcamos el elemento como seleccionado el elemento.
-                        selectedCell.classList.add("selected");
+                        that.selectedCell.classList.add("selected");
 
                         // Cogemos los elementos del grupo, de la fila, de la columna y los seleccionamos.
-                        var group = selectedCell.getAttribute("data-group");
-                        var x = selectedCell.getAttribute("data-x");
-                        var y = selectedCell.getAttribute("data-y");
+                        var group = that.selectedCell.getAttribute("data-group");
+                        var x = that.selectedCell.getAttribute("data-x");
+                        var y = that.selectedCell.getAttribute("data-y");
                         selectedGroup = w.document.querySelectorAll("[data-group='" + group + "'], [data-x='" + x + "'], [data-y='" + y + "']");
                         selectGroup();
 
                         // Cogemos los elementos que tengan el mismo valor que la celda seleccionada y los seleccionamos.
-                        var value = selectedCell.getAttribute("data-value");
+                        var value = that.selectedCell.getAttribute("data-value");
                         selectedValues = w.document.querySelectorAll("[data-value='" + value + "']");
                         selectValues();
+                    });
+                },
+
+                /**
+                 * @name createValueEvent
+                 * @description Crea el evento para asignar valores al tablero.
+                 */
+                createValueEvent: function () {
+                    var that = this;
+
+                    this.tableValues.addEventListener("click", function (event) {
+                        // Si no hay celda seleccionada o si la celda seleccionada está bloqueada entonces salimos del evento.
+                        if (!that.selectedCell || that.selectedCell.className.indexOf("blocked") > -1) return;
+
+                        // Asignamos el valor a la celda.
+                        var value = event.target.getAttribute("data-value");
+
+
+                        // TODO: Si se repite el número hay que marcarlo como posible valor.
+                        
+                        // var enableNotes = that.selectedCell.getAttribute("data-value") == value;
+
+                        // if (enableNotes) {
+
+                        // }
+
+                        if (!that.selectedCell.children[0].style.display) {
+                            that.selectedCell.setAttribute("data-value", value);
+                            that.selectedCell.children[0].innerHTML = value;
+                        }
+                        else {
+                            that.selectedCell.setAttribute("data-value", "");
+                            that.selectedCell.children[0].innerHTML = "";
+                        }
+                        
+                        that.selectedCell.click();
+
+
+                        // TODO: Comprobar si el tablero es correcto para poder finalizar la partida.
                     });
                 }
             };
