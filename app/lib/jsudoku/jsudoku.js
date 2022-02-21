@@ -12,6 +12,10 @@
         var Dom = (function () {
             return {
                 /**
+                 * @type {Sudoku}
+                 */
+                sudoku: undefined,
+                /**
                  * @type {Element}
                  */
                 container: undefined,
@@ -31,13 +35,15 @@
                 /**
                  * @name initContainer
                  * @description Inicializa los elementos básicos del contenedor.
+                 * @param {Sudoku} sudoku - Instancia del juego.
                  * @param {Element} container - Contenedor del juego.
                  */
-                initContainer: function (container) {
+                initContainer: function (sudoku, container) {
                     if (this.container) return;
 
-                    // Almacenamos el contanador.
+                    // Almacenamos el contenedor y la instancia del juego.
                     this.container = container;
+                    this.sudoku = sudoku;
 
                     // Creamos el título del contenedor.
                     var titleContainer = w.document.createElement("div");
@@ -313,7 +319,8 @@
                         var value = event.target.getAttribute("data-value");
 
 
-                        // TODO: Si se repite el número hay que marcarlo como posible valor.
+                        // TODO: Si se repite el número hay que marcarlo como posible valor y guardarlo en el tablero de juego.
+                        // TODO: Utilizar la función "setGameBoardNote" para guardar las notas en el tablero.
                         
                         // var enableNotes = that.selectedCell.getAttribute("data-value") == value;
 
@@ -321,13 +328,24 @@
 
                         // }
 
+                        if (!that.selectedCell.children[0].style.display && that.selectedCell.getAttribute("data-value") != value) {
+                            // TODO: Especificar el valor al "span".
+                        }
+                        else {
+                            // TODO: Quitar el valor al "span".
+                            // TODO: Comprobar si es el mismo valor para activar las notas (ocultar "span" y mostrar "content-notes").
+                            // TODO: 
+                        }
+
                         if (!that.selectedCell.children[0].style.display) {
                             that.selectedCell.setAttribute("data-value", value);
                             that.selectedCell.children[0].innerHTML = value;
+                            that.setGameBoardValue(value);
                         }
                         else {
                             that.selectedCell.setAttribute("data-value", "");
                             that.selectedCell.children[0].innerHTML = "";
+                            that.setGameBoardValue("");
                         }
                         
                         that.selectedCell.click();
@@ -335,6 +353,38 @@
 
                         // TODO: Comprobar si el tablero es correcto para poder finalizar la partida.
                     });
+                },
+
+                /**
+                 * @name setGameBoardValue
+                 * @description Especifica el valor proporcionado en el tablero de juego.
+                 * @param {string} value - Valor a especificar en el tablero.
+                 */
+                setGameBoardValue: function (value) {
+                    // Si no hay celda seleccionada no hacemos nada.
+                    if (!this.selectedCell) return;
+
+                    // Obtenemos las coordenadas de la celda y le especificamos el valor.
+                    var x = w.parseInt(this.selectedCell.getAttribute("data-x"));
+                    var y = w.parseInt(this.selectedCell.getAttribute("data-y"));
+                    this.sudoku.gameBoard[y][x] = value;
+                },
+
+                /**
+                 * @name setGameBoardNote
+                 * @description Especifica la nota proporcionada en el tablero de juego.
+                 * @param {string} note - Nota a especificar en el tablero.
+                 */
+                setGameBoardNote: function (note) {
+                    // Si no hay celda seleccionada no hacemos nada.
+                    if (!this.selectedCell) return;
+
+                    // Obtenemos las coordenadas de la celda.
+                    var x = w.parseInt(this.selectedCell.getAttribute("data-x"));
+                    var y = w.parseInt(this.selectedCell.getAttribute("data-y"));
+
+                    // TODO: Vaciar el valor de la celda en el caso de que sea una cadena.
+                    // TODO: Guardar las notas como un array del 1 al 9, pero sin repetir número.
                 }
             };
         })();
@@ -348,7 +398,7 @@
             this.gameBoard = new Array(9);
 
             // Inicializamos los elementos del DOM.
-            Dom.initContainer(container);
+            Dom.initContainer(this, container);
         };
 
         /**
