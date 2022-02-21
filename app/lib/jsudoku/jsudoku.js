@@ -111,6 +111,7 @@
                     function createNote(value) {
                         var div = w.document.createElement("div");
                         div.setAttribute("data-value", value.toString());
+                        div.style.display = "none";
                         div.appendChild(w.document.createTextNode(value.toString()));
                         return div;
                     };
@@ -319,35 +320,54 @@
                         var value = event.target.getAttribute("data-value");
 
 
-                        // TODO: Si se repite el número hay que marcarlo como posible valor y guardarlo en el tablero de juego.
-                        // TODO: Utilizar la función "setGameBoardNote" para guardar las notas en el tablero.
-                        
-                        // var enableNotes = that.selectedCell.getAttribute("data-value") == value;
-
-                        // if (enableNotes) {
-
-                        // }
+                        // TODO: Optimizar este evento.
 
                         if (!that.selectedCell.children[0].style.display && that.selectedCell.getAttribute("data-value") != value) {
-                            // TODO: Especificar el valor al "span".
-                        }
-                        else {
-                            // TODO: Quitar el valor al "span".
-                            // TODO: Comprobar si es el mismo valor para activar las notas (ocultar "span" y mostrar "content-notes").
-                            // TODO: 
-                        }
-
-                        if (!that.selectedCell.children[0].style.display) {
+                            // Asignamos el valor a la celda.
                             that.selectedCell.setAttribute("data-value", value);
                             that.selectedCell.children[0].innerHTML = value;
                             that.setGameBoardValue(value);
                         }
                         else {
+                            if (!that.selectedCell.children[0].style.display && that.selectedCell.getAttribute("data-value") == value) {
+                                // Si el valor de la celda está visible y se vuelve a seleccionar el mismo valor mostramos el contenedor de notas.
+                                that.selectedCell.children[0].style.display = "none";
+                                that.selectedCell.children[1].style.display = "";
+                            }
+
+                            if (!that.selectedCell.children[1].style.display) {
+                                var note = that.selectedCell.children[1].querySelector("[data-value='" + value + "']");
+
+                                if (note) {
+                                    if (note.innerHTML == value && that.selectedCell.children[1].querySelector("[data-value='" + value + "']")) {
+
+                                    }
+                                    note.style.display = (!note.style.display) ? "none" : "";
+
+                                    var visibleNotes = Array.prototype.slice.call(that.selectedCell.children[1].children).filter(function (x) {
+                                        return !x.style.display;
+                                    });
+
+                                    if (visibleNotes.length === 0) {
+                                        // Si no hay notas entonces volvemos a mostrar el contenido de la celda.
+                                        that.selectedCell.children[1].style.display = "none";
+                                        that.selectedCell.children[0].style.display = "";
+                                    }
+                                }
+                                else {
+                                    // Si se borra la nota entonces volvemos a mostrar el contenido de la celda y ocultamos las notas.
+                                    that.selectedCell.children[1].style.display = "none";
+                                    that.selectedCell.children[0].style.display = "";
+                                }
+                            }
+
+                            // Quitamos el valor a la celda.
                             that.selectedCell.setAttribute("data-value", "");
                             that.selectedCell.children[0].innerHTML = "";
                             that.setGameBoardValue("");
                         }
                         
+                        // Volvemos a hacer clic en la celda.
                         that.selectedCell.click();
 
 
