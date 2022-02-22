@@ -56,6 +56,8 @@
                     this.container.classList.add("jsudoku");
                     this.container.appendChild(titleContainer);
 
+                    // TODO: Crear el menú superior del juego.
+
                     // Creamos la tabla y la añadimos al contenedor.
                     this.table = w.document.createElement("table");
                     this.container.appendChild(this.table);
@@ -326,6 +328,9 @@
                             that.selectedCell.setAttribute("data-value", value);
                             that.selectedCell.children[0].innerHTML = value;
                             that.setGameBoardValue(value);
+
+                            // Comprobamos el tablero de juego para ver si se puede finalizar la partida.
+                            that.checkGameBoard();
                         }
                         else {
                             var hideNotes = false;
@@ -375,9 +380,6 @@
                         
                         // Volvemos a hacer clic en la celda.
                         that.selectedCell.click();
-
-                        // Comprobamos el tablero de juego para ver si se puede finalizar la partida.
-                        that.checkGameBoard();
                     });
                 },
 
@@ -435,9 +437,15 @@
                     }
                 },
 
+                /**
+                 * @name checkGameBoard
+                 * @description Comprueba si el tablero de juego es correcto para poder finalizar la partida.
+                 */
                 checkGameBoard: function () {
-                    // TODO: Comprobar si el tablero es correcto para poder finalizar la partida.
-
+                    if (this.sudoku.isGameBoardCleared()) {
+                        // TODO: Finalizar la partida.
+                        // TODO: Parar el contador en el caso de que esté activo.
+                    }
                 }
             };
         })();
@@ -620,6 +628,25 @@
             }
 
             Dom.paintBoard(this.gameBoard);
+        };
+
+        /**
+         * @name isGameBoardCleared
+         * @description Comprueba si el tablero de juego está correcto.
+         * @returns {boolean} Retorna "true" si el tablero de juego está correcto o "false" en caso de que no lo esté.
+         */
+        Sudoku.prototype.isGameBoardCleared = function () {
+            for (var y = 0; y < this.board.length; y++) {
+                for (var x = 0; x < this.board[y].length; x++) {
+                    var value = w.parseInt(this.gameBoard[y][x]);
+
+                    if (w.Array.isArray(this.gameBoard[y][x]) || w.isNaN(value) || this.board[y][x] !== value) {
+                        return false;
+                    }
+                }
+            }
+            
+            return true;
         };
 
         return Sudoku;
