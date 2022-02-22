@@ -312,15 +312,14 @@
                 createValueEvent: function () {
                     var that = this;
 
+                    // TODO: Permitir asignar valores y notas con el teclado numérico.
+
                     this.tableValues.addEventListener("click", function (event) {
                         // Si no hay celda seleccionada o si la celda seleccionada está bloqueada entonces salimos del evento.
                         if (!that.selectedCell || that.selectedCell.className.indexOf("blocked") > -1) return;
 
                         // Asignamos el valor a la celda.
                         var value = event.target.getAttribute("data-value");
-
-
-                        // TODO: Optimizar este evento.
 
                         if (!that.selectedCell.children[0].style.display && that.selectedCell.getAttribute("data-value") != value) {
                             // Asignamos el valor a la celda.
@@ -329,8 +328,10 @@
                             that.setGameBoardValue(value);
                         }
                         else {
+                            var hideNotes = false;
+
+                            // Si el valor de la celda está visible y se vuelve a seleccionar el mismo valor mostramos el contenedor de notas.
                             if (!that.selectedCell.children[0].style.display && that.selectedCell.getAttribute("data-value") == value) {
-                                // Si el valor de la celda está visible y se vuelve a seleccionar el mismo valor mostramos el contenedor de notas.
                                 that.selectedCell.children[0].style.display = "none";
                                 that.selectedCell.children[1].style.display = "";
                             }
@@ -339,39 +340,44 @@
                                 var note = that.selectedCell.children[1].querySelector("[data-value='" + value + "']");
 
                                 if (note) {
-                                    if (note.innerHTML == value && that.selectedCell.children[1].querySelector("[data-value='" + value + "']")) {
-
-                                    }
+                                    // Cambiamos la visibilidad de la nota.
                                     note.style.display = (!note.style.display) ? "none" : "";
 
-                                    var visibleNotes = Array.prototype.slice.call(that.selectedCell.children[1].children).filter(function (x) {
+                                    // Si no hay notas entonces volvemos a mostrar el contenido de la celda.
+                                    hideNotes = w.Array.prototype.slice.call(that.selectedCell.children[1].children).filter(function (x) {
                                         return !x.style.display;
-                                    });
-
-                                    if (visibleNotes.length === 0) {
-                                        // Si no hay notas entonces volvemos a mostrar el contenido de la celda.
-                                        that.selectedCell.children[1].style.display = "none";
-                                        that.selectedCell.children[0].style.display = "";
-                                    }
+                                    }).length === 0;
                                 }
                                 else {
                                     // Si se borra la nota entonces volvemos a mostrar el contenido de la celda y ocultamos las notas.
-                                    that.selectedCell.children[1].style.display = "none";
-                                    that.selectedCell.children[0].style.display = "";
+                                    hideNotes = true;
+                                }
+                            }
+
+                            if (hideNotes) {
+                                // Ocultamos las notas y mostramos el contenido de la celda.
+                                that.selectedCell.children[1].style.display = "none";
+                                that.selectedCell.children[0].style.display = "";
+
+                                // Ocultamos todas las notas de la celda.
+                                for (var i = 0; i < that.selectedCell.children[1].children.length; i++) {
+                                    that.selectedCell.children[1].children[i].style.display = "none";
                                 }
                             }
 
                             // Quitamos el valor a la celda.
                             that.selectedCell.setAttribute("data-value", "");
                             that.selectedCell.children[0].innerHTML = "";
-                            that.setGameBoardValue("");
+
+                            // Especificamos la nota en el tablero de juego.
+                            that.setGameBoardNote(value);
                         }
                         
                         // Volvemos a hacer clic en la celda.
                         that.selectedCell.click();
 
-
-                        // TODO: Comprobar si el tablero es correcto para poder finalizar la partida.
+                        // Comprobamos el tablero de juego para ver si se puede finalizar la partida.
+                        that.checkGameBoard();
                     });
                 },
 
@@ -399,12 +405,39 @@
                     // Si no hay celda seleccionada no hacemos nada.
                     if (!this.selectedCell) return;
 
+                    // Parseamos la nota para ver si es un número o no.
+                    var noteValue = w.parseInt(note);
+
                     // Obtenemos las coordenadas de la celda.
                     var x = w.parseInt(this.selectedCell.getAttribute("data-x"));
                     var y = w.parseInt(this.selectedCell.getAttribute("data-y"));
 
-                    // TODO: Vaciar el valor de la celda en el caso de que sea una cadena.
-                    // TODO: Guardar las notas como un array del 1 al 9, pero sin repetir número.
+                    if (w.isNaN(noteValue)) {
+                        // Si la nota no es numérica vaciamos la celda.
+                        this.sudoku.gameBoard[y][x] = "";
+                    }
+                    else {
+                        // Si la nota es numérica, creamos un array en la celda en el caso de que no haya uno ya creado.
+                        if (!w.Array.isArray(this.sudoku.gameBoard[y][x])) {
+                            this.sudoku.gameBoard[y][x] = [];
+                        }
+
+                        var index = this.sudoku.gameBoard[y][x].indexOf(noteValue);
+
+                        if (index === -1) {
+                            // Si la nota no existe la añadimos.
+                            this.sudoku.gameBoard[y][x].push(noteValue);
+                        }
+                        else {
+                            // Si la nota ya existe la eliminamos.
+                            this.sudoku.gameBoard[y][x].splice(index, 1);
+                        }
+                    }
+                },
+
+                checkGameBoard: function () {
+                    // TODO: Comprobar si el tablero es correcto para poder finalizar la partida.
+
                 }
             };
         })();
@@ -586,7 +619,6 @@
                     throw Error("JSudoku -> Es necesario que especifique una dificultad válida para poder jugar.");
             }
 
-            // TODO: Pintar el tablero.
             Dom.paintBoard(this.gameBoard);
         };
 
