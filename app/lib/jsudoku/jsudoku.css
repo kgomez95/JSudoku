@@ -154,6 +154,22 @@
     margin-top: 15px;
 }
 
+.jsudoku input.hidden {
+    position: absolute;
+    background: transparent;
+    border: none;
+    pointer-events: none;
+    color: transparent;
+    width: 0;
+    height: 0;
+}
+
+.jsudoku input.hidden:focus {
+    outline: none;
+    pointer-events: none;
+    color: transparent;
+}
+
 @media only screen and (max-width: 1250px) {
     .jsudoku {
         width: 40%;

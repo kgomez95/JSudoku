@@ -31,6 +31,10 @@
                  * @type {Element}
                  */
                 selectedCell: undefined,
+                /**
+                 * @type {Element}
+                 */
+                inputValue: undefined,
 
                 /**
                  * @name initContainer
@@ -64,6 +68,12 @@
 
                     // Inicializamos la tabla de valores.
                     Dom.paintTableValues();
+
+                    // Creamos el input oculto para leer los valores del teclado.
+                    this.inputValue = w.document.createElement("input");
+                    this.inputValue.setAttribute("type", "text");
+                    this.inputValue.classList.add("hidden");
+                    this.container.appendChild(this.inputValue);
 
                     // Inicializamos los eventos de la tabla.
                     Dom.createSelectEvent();
@@ -263,7 +273,7 @@
                             // Deseleccionamos la celda anterior y su grupo de celdas.
                             that.selectedCell.classList.remove("selected");
                             deselectGroup();
-                            
+
                         }
 
                         // Deseleccionamos sus celdas con el mismo valor.
@@ -305,6 +315,9 @@
                         var value = that.selectedCell.getAttribute("data-value");
                         selectedValues = w.document.querySelectorAll("[data-value='" + value + "']");
                         selectValues();
+
+                        // Nos posicionamos en el input oculto para leer los valores del teclado.
+                        that.inputValue.focus();
                     });
                 },
 
@@ -317,12 +330,9 @@
 
                     // TODO: Permitir asignar valores y notas con el teclado numérico.
 
-                    this.tableValues.addEventListener("click", function (event) {
+                    function event(value) {
                         // Si no hay celda seleccionada o si la celda seleccionada está bloqueada entonces salimos del evento.
                         if (!that.selectedCell || that.selectedCell.className.indexOf("blocked") > -1) return;
-
-                        // Asignamos el valor a la celda.
-                        var value = event.target.getAttribute("data-value");
 
                         if (!that.selectedCell.children[0].style.display && that.selectedCell.getAttribute("data-value") != value) {
                             // Asignamos el valor a la celda.
@@ -378,9 +388,47 @@
                             // Especificamos la nota en el tablero de juego.
                             that.setGameBoardNote(value);
                         }
-                        
+
                         // Volvemos a hacer clic en la celda.
                         that.selectedCell.click();
+                    };
+
+                    // Creamos el evento click para la tabla de valores.
+                    this.tableValues.addEventListener("click", function (e) {
+                        event(e.target.getAttribute("data-value"));
+                    });
+
+                    // Creamos el evento keyup para asignar un valor por teclado.
+                    this.inputValue.addEventListener("keyup", function (e) {
+                        // Obtenemos la tecla presionada.
+                        var key = e.key.toLowerCase();
+
+                        if (key.indexOf("del") > -1 || key.indexOf("back") > -1 || key === "0") {
+                            // Ejecutamos el evento si se presiona suprimir, retroceso o 0.
+                            event("");
+                        }
+                        else if (!w.isNaN(w.parseInt(key))) {
+                            // Ejecutamos el evento si se presiona un número entre 1 y 9.
+                            switch (key) {
+                                case "1":
+                                case "2":
+                                case "3":
+                                case "4":
+                                case "5":
+                                case "6":
+                                case "7":
+                                case "8":
+                                case "9":
+                                    event(key);
+                                    break;
+                            }
+                        }
+                        else {
+                            // TODO: Si el usuario presiona las flechas del teclado se debería poder mover entre las celdas del tablero.
+                        }
+
+                        // Borramos el valor del input.
+                        this.value = "";
                     });
                 },
 
@@ -646,7 +694,7 @@
                     }
                 }
             }
-            
+
             return true;
         };
 
