@@ -49,19 +49,20 @@
     width: auto;
 }
 
-.jsudoku td .content, .jsudoku td .content-values {
+.jsudoku td .content,
+.jsudoku td .content-values {
     position: absolute;
     top: 0;
     bottom: 0;
     left: 0;
     right: 0;
-    background: whitesmoke;
+    background: #f3f4f7;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
     font-weight: bold;
-    color: red;
+    color: #f50537;
     font-size: 26px;
 }
 
@@ -72,32 +73,74 @@
     left: 0;
     right: 0;
     background: transparent;
-    display: grid;
     align-items: center;
     justify-content: center;
     text-align: center;
     font-weight: bold;
-    color: darkblue;
+    color: #00205b;
     font-size: 12px;
-    grid-template-columns: auto auto auto;
     padding: 2px;
     justify-content: space-between;
+
+    display: grid;
+    display: -ms-grid;
+    grid-template-columns: auto auto auto;
+    -ms-grid-columns: 1fr 1fr 1fr;
+    -ms-grid-rows: 1fr 1fr 1fr;
+}
+
+.jsudoku td .content-notes > .note1 {
+    -ms-grid-column: 1;
+    -ms-grid-row: 1;
+}
+.jsudoku td .content-notes > .note2 {
+    -ms-grid-column: 2;
+    -ms-grid-row: 1;
+}
+.jsudoku td .content-notes > .note3 {
+    -ms-grid-column: 3;
+    -ms-grid-row: 1;
+}
+.jsudoku td .content-notes > .note4 {
+    -ms-grid-column: 1;
+    -ms-grid-row: 2;
+}
+.jsudoku td .content-notes > .note5 {
+    -ms-grid-column: 2;
+    -ms-grid-row: 2;
+}
+.jsudoku td .content-notes > .note6 {
+    -ms-grid-column: 3;
+    -ms-grid-row: 2;
+}
+.jsudoku td .content-notes > .note7 {
+    -ms-grid-column: 1;
+    -ms-grid-row: 3;
+}
+.jsudoku td .content-notes > .note8 {
+    -ms-grid-column: 2;
+    -ms-grid-row: 3;
+}
+.jsudoku td .content-notes > .note9 {
+    -ms-grid-column: 3;
+    -ms-grid-row: 3;
 }
 
 .jsudoku td .content.blocked {
-    color: black;
+    color: #222;
 }
 
-.jsudoku td .content.selected, .jsudoku td .content-notes.selected {
-    background-color: rgb(47, 206, 255);
+.jsudoku td .content.selected,
+.jsudoku td .content-notes.selected {
+    background-color: #8db9ca;
 }
 
 .jsudoku td .content.selected-group {
-    background-color: rgb(73, 243, 255);
+    background-color: #b1d4e5;
 }
 
 .jsudoku td .content.selected-values {
-    color: blue;
+    color: #037ef3;
 }
 
 .jsudoku td.l-separator {

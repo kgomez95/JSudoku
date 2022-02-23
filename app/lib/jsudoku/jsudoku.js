@@ -114,6 +114,7 @@
                         var div = w.document.createElement("div");
                         div.setAttribute("data-value", value.toString());
                         div.style.display = "none";
+                        div.classList.add("note" + value);
                         div.appendChild(w.document.createTextNode(value.toString()));
                         return div;
                     };
