@@ -154,6 +154,7 @@
                             content.setAttribute("data-y", y.toString());
                             content.setAttribute("data-group", (groupY + groupX).toString());
                             content.setAttribute("data-value", boardGame[y][x]);
+                            content.setAttribute("tabindex", "1");
 
                             // Si la celda tiene valor entonces bloqueamos su contenido.
                             if (boardGame[y][x]) {
@@ -328,8 +329,13 @@
                 createValueEvent: function () {
                     var that = this;
 
-                    // TODO: Permitir asignar valores y notas con el teclado numérico.
+                    // TODO: Poner seleccionar las casillas haciendo también tabulación, para no obligar a utilizar el ratón en ninguna ocasión.
 
+                    /**
+                     * @name event
+                     * @description Asigna el valor o la nota a la celda seleccionada.
+                     * @param {string} value - Valor a introducir.
+                     */
                     function event(value) {
                         // Si no hay celda seleccionada o si la celda seleccionada está bloqueada entonces salimos del evento.
                         if (!that.selectedCell || that.selectedCell.className.indexOf("blocked") > -1) return;
@@ -393,6 +399,27 @@
                         that.selectedCell.click();
                     };
 
+                    /**
+                     * @name changeSelectedCell
+                     * @description Cambia la celda seleccionada del tablero de juego.
+                     * @param {number} xPos - Posición X a incrementar o restar a la posición actual.
+                     * @param {number} yPos - Posición Y a incrementar o restar a la posición actual.
+                     */
+                    function changeSelectedCell(xPos, yPos) {
+                        if (!that.selectedCell) return;
+
+                        var x = w.parseInt(that.selectedCell.getAttribute("data-x")) + xPos;
+                        var y = w.parseInt(that.selectedCell.getAttribute("data-y")) + yPos;
+
+                        if (x >= 0 && x < 9 && y >= 0 && y < 9) {
+                            var cell = w.document.querySelector("[data-x='" + x + "'][data-y='" + y + "']");
+
+                            if (cell) {
+                                cell.click();
+                            }
+                        }
+                    };
+
                     // Creamos el evento click para la tabla de valores.
                     this.tableValues.addEventListener("click", function (e) {
                         event(e.target.getAttribute("data-value"));
@@ -424,7 +451,24 @@
                             }
                         }
                         else {
-                            // TODO: Si el usuario presiona las flechas del teclado se debería poder mover entre las celdas del tablero.
+                            // Quitamos la palabra "arrow" en caso de que la tenga.
+                            key = key.replace("arrow", "");
+
+                            // Movemos el cursor en el caso de que se esté presionando cualquier flecha del teclado.
+                            switch (key) {
+                                case "up":
+                                    changeSelectedCell(0, -1);
+                                    break;
+                                case "left":
+                                    changeSelectedCell(-1, 0);
+                                    break;
+                                case "right":
+                                    changeSelectedCell(1, 0);
+                                    break;
+                                case "down":
+                                    changeSelectedCell(0, 1);
+                                    break;
+                            }
                         }
 
                         // Borramos el valor del input.
