@@ -60,7 +60,8 @@
                     this.container.classList.add("jsudoku");
                     this.container.appendChild(titleContainer);
 
-                    // TODO: Crear el menú superior del juego.
+                    // Creamos el menú principal del juego.
+                    Dom.createMainMenu();
 
                     // Creamos la tabla y la añadimos al contenedor.
                     this.table = w.document.createElement("table");
@@ -80,6 +81,24 @@
                     Dom.createValueEvent();
                 },
 
+                /**
+                 * @name createMainMenu
+                 * @description Crea el menú principal del juego.
+                 */
+                createMainMenu: function () {
+                    // TODO: Crear el menú superior del juego.
+
+                    // TODO: Crear un contenedor con tres radio-button para seleccionar la dificultad y un botón justo debajo que ponga "Nuevo".
+                    // TODO: Crear un contenedor con los botones "Comprobar" (para comprobar si las celdas introducidas son correctas, y si lo son
+                    //       cambiar su color a verde y bloquearlas), "Resolver" (para resolver la partida y finalizar el juego sin ganar),
+                    //       "Guardar" (para guardar la partida) y "Cargar" (para cargar una partida guardada).
+                    // TODO: Crear un contenedor con un temporizador y tres botones: "Iniciar", "Pausar" y "Reiniciar".
+                },
+
+                /**
+                 * @name paintTableValues
+                 * @description Pinta por pantalla la tabla de valores para seleccionar.
+                 */
                 paintTableValues: function () {
                     this.tableValues = w.document.createElement("table");
                     var tr = w.document.createElement("tr");
@@ -268,9 +287,13 @@
                         }
                     };
 
-                    // Evento click.
-                    this.table.addEventListener("click", function (event) {
-                        if (that.selectedCell && that.selectedCell !== event.target) {
+                    /**
+                     * @name event
+                     * @description Selecciona la celda del tablero.
+                     * @param {Event} e - Evento para obtener el elemento "target".
+                     */
+                    function event(e) {
+                        if (that.selectedCell && that.selectedCell !== e.target) {
                             // Deseleccionamos la celda anterior y su grupo de celdas.
                             that.selectedCell.classList.remove("selected");
                             deselectGroup();
@@ -281,7 +304,7 @@
                         deselectValues();
 
                         // Guardamos la referencia del elemento seleccionado y vaciamos las celdas grupo seleccionadas.
-                        that.selectedCell = event.target;
+                        that.selectedCell = e.target;
                         selectedGroup = undefined;
                         selectedValues = undefined;
 
@@ -319,6 +342,16 @@
 
                         // Nos posicionamos en el input oculto para leer los valores del teclado.
                         that.inputValue.focus();
+                    };
+
+                    // Evento focusin para seleccionar la celda.
+                    this.table.addEventListener("focusin", function (e) {
+                        event(e);
+                    });
+
+                    // Evento click para seleccionar la celda.
+                    this.table.addEventListener("click", function (e) {
+                        event(e);
                     });
                 },
 
@@ -328,8 +361,6 @@
                  */
                 createValueEvent: function () {
                     var that = this;
-
-                    // TODO: Poner seleccionar las casillas haciendo también tabulación, para no obligar a utilizar el ratón en ninguna ocasión.
 
                     /**
                      * @name event
