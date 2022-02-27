@@ -86,13 +86,138 @@
                  * @description Crea el menú principal del juego.
                  */
                 createMainMenu: function () {
-                    // TODO: Crear el menú superior del juego.
+                    var that = this;
 
-                    // TODO: Crear un contenedor con tres radio-button para seleccionar la dificultad y un botón justo debajo que ponga "Nuevo".
-                    // TODO: Crear un contenedor con los botones "Comprobar" (para comprobar si las celdas introducidas son correctas, y si lo son
-                    //       cambiar su color a verde y bloquearlas), "Resolver" (para resolver la partida y finalizar el juego sin ganar),
-                    //       "Guardar" (para guardar la partida) y "Cargar" (para cargar una partida guardada).
+                    // TODO: Crear el menú superior del juego.
+                    var menuContainer = w.document.createElement("div");
+
+                    // Creamos el primer contenedor para la creación de la partida.
+                    menuContainer.appendChild((function () {
+                        // Creamos los contenedores y el formulario.
+                        var container = w.document.createElement("div");
+                        var easyContainer = w.document.createElement("div");
+                        var normalContainer = w.document.createElement("div");
+                        var hardContainer = w.document.createElement("div");
+                        var form = w.document.createElement("form");
+
+                        /**
+                         * @name createInputRadio
+                         * @description Crea un input de tipo radio-button con los valores proporcionados por parámetros.
+                         * @param {string} id - Identificador del elemento.
+                         * @param {string} name - Nombre del elemento.
+                         * @param {string} value - Valor del elemento.
+                         * @param {boolean} checked - Indica si está o no seleccionado por defecto.
+                         * @returns {Element} Retorna el elemento input construido.
+                         */
+                        function createInputRadio(id, name, value, checked) {
+                            var input = w.document.createElement("input");
+                            input.setAttribute("id", id);
+                            input.setAttribute("type", "radio");
+                            input.setAttribute("name", name);
+                            input.setAttribute("value", value);
+                            if (checked)
+                                input.setAttribute("checked", "checked");
+                            return input;
+                        };
+
+                        /**
+                         * @name createLabel
+                         * @description Crea un elemento label con el texto proporcionado por parámetro y se lo asigna al elemento que le especifiquemos.
+                         * @param {string} idFor - Identificador del elemento al que hará referencia el label.
+                         * @param {string} text - Texto que mostrará el elemento label.
+                         * @returns {Element} Retorna el elemento label construido.
+                         */
+                        function createLabel(idFor, text) {
+                            var label = w.document.createElement("label");
+                            label.setAttribute("for", idFor);
+                            label.innerText = text;
+                            return label;
+                        };
+
+                        // Creamos el contenedor para la dificultad "fácil".
+                        var idEasyInput = "easy_input";
+                        easyContainer.appendChild(createInputRadio(idEasyInput, "difficulty", "0", false));
+                        easyContainer.appendChild(createLabel(idEasyInput, "Fácil"));
+
+                        // Creamos el contenedor para la dificultad "normal".
+                        var idNormalInput = "normal_input";
+                        normalContainer.appendChild(createInputRadio(idNormalInput, "difficulty", "1", true));
+                        normalContainer.appendChild(createLabel(idNormalInput, "Normal"));
+
+                        // Creamos el contenedor para la dificultad "difícil".
+                        var idHardInput = "hard_input";
+                        hardContainer.appendChild(createInputRadio(idHardInput, "difficulty", "2", false));
+                        hardContainer.appendChild(createLabel(idHardInput, "Difícil"));
+
+                        // Creamos el botón para crear la nueva partida.
+                        var newGameButton = w.document.createElement("input");
+                        newGameButton.setAttribute("type", "submit");
+                        newGameButton.innerText = "Nuevo";
+
+                        // Añadimos los contenedores al formulario y el botón de crear la partida.
+                        form.appendChild(easyContainer);
+                        form.appendChild(normalContainer);
+                        form.appendChild(hardContainer);
+                        form.appendChild(newGameButton);
+
+                        // TODO: Configurar el formulario para que al enviarse cree una nueva partida (sin recargar la página entera).
+
+                        // Añadimos el formulario al contenedor.
+                        container.appendChild(form);
+
+                        return container;
+                    })());
+
+                    // Creamos el segundo contenedor para los botones del tablero.
+                    menuContainer.appendChild((function () {
+                        var container = w.document.createElement("div");
+
+                        /**
+                         * @name createButton
+                         * @description Crea un botón con el texto y el evento click proporcionados por parámetros.
+                         * @param {string} text - Texto del botón.
+                         * @param {EventListenerOrEventListenerObject | undefined | null} onclickFunction - Función que se ejecutará al hacer clic en el botón.
+                         * @returns {Element} Retorna el botón construido.
+                         */
+                        function createButton(text, onclickFunction) {
+                            var button = w.document.createElement("button");
+                            button.innerText = text;
+                            if (typeof(onclickFunction) === "function")
+                                button.addEventListener("click", onclickFunction);
+                            return button;
+                        };
+
+                        // Creamos el botón de comprobar tablero.
+                        container.appendChild(createButton("Comprobar", function () {
+                            that.sudoku.checkCells();
+                        }));
+
+                        // Creamos el botón de resolver el tablero.
+                        container.appendChild(createButton("Resolver", function () {
+                            that.sudoku.resolveGameBoard();
+                        }));
+
+                        // Creamos el botón de guardar partida.
+                        container.appendChild(createButton("Guardar", function () {
+                            that.sudoku.saveGame();
+                        }));
+
+                        // Creamos el botón de cargar partida.
+                        container.appendChild(createButton("Cargar", function () {
+                            that.sudoku.loadGame();
+                        }));
+
+                        return container;
+                    })());
+
                     // TODO: Crear un contenedor con un temporizador y tres botones: "Iniciar", "Pausar" y "Reiniciar".
+                    menuContainer.appendChild((function () {
+                        var container = w.document.createElement("div");
+
+                        return container;
+                    })());
+
+                    that.container.appendChild(menuContainer);
                 },
 
                 /**
@@ -771,6 +896,28 @@
             }
 
             return true;
+        };
+
+        Sudoku.prototype.checkCells = function () {
+            // TODO: Comprobar si las celdas que se han especificado son correctas o no.
+            // TODO: Si las celdas especificadas son correctas se tienen que cambiar su color de texto a un color verde.
+            // TODO: Las celdas que sean correctar se les tiene que asignar la clase "blocked" para que ya no se puedan modificar.
+            console.log(this.gameBoard);
+        };
+
+        Sudoku.prototype.resolveGameBoard = function () {
+            // TODO: Resolver el tablero.
+            // TODO: Parar el contador en el caso de que esté activo.
+            // TODO: El jugador no gana la partida.
+        };
+
+        Sudoku.prototype.saveGame = function () {
+            // TODO: Guardar la partida en el localStorage.
+        };
+
+        Sudoku.prototype.loadGame = function () {
+            // TODO: Cargar la partida del localStorage.
+            // TODO: Construir el tablero de juego en base a los datos cargados.
         };
 
         return Sudoku;
