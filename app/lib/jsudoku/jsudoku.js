@@ -35,6 +35,10 @@
                  * @type {Element}
                  */
                 inputValue: undefined,
+                /**
+                 * @type {Element}
+                 */
+                timer: undefined,
 
                 /**
                  * @name initContainer
@@ -88,8 +92,24 @@
                 createMainMenu: function () {
                     var that = this;
 
-                    // TODO: Crear el menú superior del juego.
+                    /**
+                     * @name createButton
+                     * @description Crea un botón con el texto y el evento click proporcionados por parámetros.
+                     * @param {string} text - Texto del botón.
+                     * @param {EventListenerOrEventListenerObject | undefined | null} onclickFunction - Función que se ejecutará al hacer clic en el botón.
+                     * @returns {Element} Retorna el botón construido.
+                     */
+                    function createButton(text, onclickFunction) {
+                        var button = w.document.createElement("button");
+                        button.innerText = text;
+                        if (typeof (onclickFunction) === "function")
+                            button.addEventListener("click", onclickFunction);
+                        return button;
+                    };
+
+                    // Creamos el contenedor del menú principal.
                     var menuContainer = w.document.createElement("div");
+                    menuContainer.classList.add("main-menu");
 
                     // Creamos el primer contenedor para la creación de la partida.
                     menuContainer.appendChild((function () {
@@ -152,7 +172,7 @@
                         // Creamos el botón para crear la nueva partida.
                         var newGameButton = w.document.createElement("input");
                         newGameButton.setAttribute("type", "submit");
-                        newGameButton.innerText = "Nuevo";
+                        newGameButton.value = "Nuevo";
 
                         // Añadimos los contenedores al formulario y el botón de crear la partida.
                         form.appendChild(easyContainer);
@@ -160,10 +180,29 @@
                         form.appendChild(hardContainer);
                         form.appendChild(newGameButton);
 
-                        // TODO: Configurar el formulario para que al enviarse cree una nueva partida (sin recargar la página entera).
+                        // Configuramos el evento para crear la partida.
+                        form.onsubmit = function (e) {
+                            e.preventDefault();
+
+                            // NOTE: Cogemos la dificultad recorriendo los elementos radio buttons. Cogemos el valor haciendo un bucle para
+                            //       que funcione también en IE.
+                            var difficulty = (function (elements) {
+                                for (var i = 0; i < elements.length; i++) {
+                                    if (elements[i].checked)
+                                        return w.parseInt(elements[i].value);
+                                }
+                                return undefined;
+                            })(this.difficulty);
+
+                            // Creamos la nueva partida.
+                            that.sudoku.newGame(difficulty);
+                        };
 
                         // Añadimos el formulario al contenedor.
                         container.appendChild(form);
+
+                        // Añadimos la clase para el contenedor del menú.
+                        container.classList.add("menu-1");
 
                         return container;
                     })());
@@ -171,21 +210,6 @@
                     // Creamos el segundo contenedor para los botones del tablero.
                     menuContainer.appendChild((function () {
                         var container = w.document.createElement("div");
-
-                        /**
-                         * @name createButton
-                         * @description Crea un botón con el texto y el evento click proporcionados por parámetros.
-                         * @param {string} text - Texto del botón.
-                         * @param {EventListenerOrEventListenerObject | undefined | null} onclickFunction - Función que se ejecutará al hacer clic en el botón.
-                         * @returns {Element} Retorna el botón construido.
-                         */
-                        function createButton(text, onclickFunction) {
-                            var button = w.document.createElement("button");
-                            button.innerText = text;
-                            if (typeof(onclickFunction) === "function")
-                                button.addEventListener("click", onclickFunction);
-                            return button;
-                        };
 
                         // Creamos el botón de comprobar tablero.
                         container.appendChild(createButton("Comprobar", function () {
@@ -207,16 +231,45 @@
                             that.sudoku.loadGame();
                         }));
 
+                        // Añadimos la clase para el contenedor del menú.
+                        container.classList.add("menu-2");
+
                         return container;
                     })());
 
-                    // TODO: Crear un contenedor con un temporizador y tres botones: "Iniciar", "Pausar" y "Reiniciar".
+                    // Creamos el tercer contenedor para el contador del juego.
                     menuContainer.appendChild((function () {
                         var container = w.document.createElement("div");
+                        var divTimer = w.document.createElement("div");
+
+                        // Creamos el contador.
+                        that.timer = w.document.createElement("span");
+                        that.timer.innerText = "00:00:00";
+                        divTimer.appendChild(that.timer);
+                        container.appendChild(divTimer);
+
+                        // Creamos el botón de iniciar el contador.
+                        container.appendChild(createButton("Iniciar", function () {
+                            that.sudoku.startTimer();
+                        }));
+
+                        // Creamos el botón de pausar el contador.
+                        container.appendChild(createButton("Pausar", function () {
+                            that.sudoku.pauseTimer();
+                        }));
+
+                        // Creamos el botón de reiniciar el contador.
+                        container.appendChild(createButton("Reiniciar", function () {
+                            that.sudoku.resetTimer();
+                        }));
+
+                        // Añadimos la clase para el contenedor del menú.
+                        container.classList.add("menu-3");
 
                         return container;
                     })());
 
+                    // Añadimos el menú principal al contenedor del juego.
                     that.container.appendChild(menuContainer);
                 },
 
@@ -709,6 +762,9 @@
 
             // Inicializamos los elementos del DOM.
             Dom.initContainer(this, container);
+
+            // Iniciamos una nueva partida en dificultad normal.
+            this.newGame(1);
         };
 
         /**
@@ -918,6 +974,18 @@
         Sudoku.prototype.loadGame = function () {
             // TODO: Cargar la partida del localStorage.
             // TODO: Construir el tablero de juego en base a los datos cargados.
+        };
+
+        Sudoku.prototype.startTimer = function () {
+            // TODO: Iniciar contador.
+        };
+
+        Sudoku.prototype.pauseTimer = function () {
+            // TODO: Pausar contador.
+        };
+
+        Sudoku.prototype.resetTimer = function () {
+            // TODO: reiniciar contador.
         };
 
         return Sudoku;
