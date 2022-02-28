@@ -171,13 +171,19 @@
 }
 
 .jsudoku .main-menu {
-    margin-top: 10px;
+    border-bottom: 3px solid black;
+    padding: 10px 0px;
 
     display: grid;
     display: -ms-grid;
     grid-template-columns: auto auto auto;
     -ms-grid-columns: 1fr 1fr 1fr;
     -ms-grid-rows: 1fr;
+}
+
+.jsudoku .main-menu button {
+    width: 100%;
+    padding: 1px 6px;
 }
 
 .jsudoku .main-menu .menu-1 {
@@ -196,23 +202,32 @@
     -ms-grid-row: 1;
 }
 
+.jsudoku .main-menu .menu-1 > form > div {
+    padding: 1px 6px;
+    margin-bottom: 3px;
+}
+
 .jsudoku .main-menu .menu-1 > form > input {
     width: 100%;
-    margin-top: 14.5px;
+    padding: 1px 6px;
 }
 
 .jsudoku .main-menu .menu-2 > button {
     width: 100%;
-    margin-bottom: 2.5px;
+    margin-bottom: 3px;
 }
 
 .jsudoku .main-menu .menu-3 > div {
-    margin-bottom: 5px;
+    margin-bottom: 3px;
+    border: 1px solid black;
+    text-align: center;
+    border-radius: 5px;
+    background-color: white;
 }
 
 .jsudoku .main-menu .menu-3 > button {
     width: 100%;
-    margin-bottom: 2.5px;
+    margin-bottom: 3px;
 }
 
 @media only screen and (max-width: 1250px) {

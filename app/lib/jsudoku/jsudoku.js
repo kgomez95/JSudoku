@@ -77,6 +77,7 @@
                     // Creamos el input oculto para leer los valores del teclado.
                     this.inputValue = w.document.createElement("input");
                     this.inputValue.setAttribute("type", "text");
+                    this.inputValue.setAttribute("inputmode", "none");
                     this.inputValue.classList.add("hidden");
                     this.container.appendChild(this.inputValue);
 
