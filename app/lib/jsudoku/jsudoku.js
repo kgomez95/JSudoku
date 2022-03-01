@@ -39,6 +39,16 @@
                  * @type {Element}
                  */
                 timer: undefined,
+                popup: {
+                    /**
+                     * @type {Element}
+                     */
+                    container: undefined,
+                    /**
+                     * @type {Element}
+                     */
+                    message: undefined
+                },
 
                 /**
                  * @name initContainer
@@ -80,6 +90,9 @@
                     this.inputValue.setAttribute("inputmode", "none");
                     this.inputValue.classList.add("hidden");
                     this.container.appendChild(this.inputValue);
+
+                    // Creamos el popup para mostrar mensajes.
+                    Dom.createPopup();
 
                     // Inicializamos los eventos de la tabla.
                     Dom.createSelectEvent();
@@ -214,7 +227,7 @@
 
                         // Creamos el botón de comprobar tablero.
                         container.appendChild(createButton("Comprobar", function () {
-                            that.sudoku.checkCells();
+                            that.sudoku.checkCells(false);
                         }));
 
                         // Creamos el botón de resolver el tablero.
@@ -746,9 +759,81 @@
                  */
                 checkGameBoard: function () {
                     if (this.sudoku.isGameBoardCleared()) {
-                        // TODO: Finalizar la partida.
                         // TODO: Parar el contador en el caso de que esté activo.
+
+                        // Comprobamos las celdas del tablero, pero sin incrementar el contador de comprobaciones.
+                        this.sudoku.checkCells(true);
+
+                        // Indicamos el fin de la partida.
+                        this.sudoku.gameOver = true;
+
+                        // Mostramos el popup de victoria.
+                        this.showVictoryPopup(this.sudoku.gameBoardChecked);
                     }
+                },
+
+                /**
+                 * @name setBlockedCell
+                 * @description Bloquea la celda proporcionada y la pone como válida.
+                 * @param {number} x - Posición horizontal de la celda.
+                 * @param {number} y - Posición vertical de la celda.
+                 */
+                setBlockedCell: function (x, y) {
+                    var cell = this.table.querySelector("[data-x='" + x + "'][data-y='" + y + "']");
+
+                    if (cell && !cell.classList.contains("blocked")) {
+                        cell.classList.add("blocked");
+                        cell.classList.add("valid");
+                    }
+                },
+
+                /**
+                 * @name createPopup
+                 * @description Crea un popup para mostrar avisos por pantalla.
+                 */
+                createPopup: function () {
+                    var that = this;
+
+                    // Creamos los contenedores.
+                    that.popup.container = w.document.createElement("div");
+                    that.popup.container.classList.add("modal");
+                    var messageDiv = w.document.createElement("div");
+
+                    // Creamos el mensaje del popup.
+                    that.popup.message = w.document.createElement("div");
+                    that.popup.message.classList.add("message");
+                    messageDiv.appendChild(that.popup.message);
+
+                    // Creamos el botón de cerrar el popup.
+                    var button = w.document.createElement("button");
+                    button.innerText = "Cerrar";
+                    button.addEventListener("click", function (e) {
+                        // Ocultamos el popup cuando el usuario presione el botón "Cerrar".
+                        that.popup.container.style.display = "none";
+                    });
+                    messageDiv.appendChild(button);
+
+                    // Añadimos el contenedor del mensaje al contenedor del popup y lo ocultamos.
+                    that.popup.container.appendChild(messageDiv);
+                    that.popup.container.style.display = "none";
+
+                    // Añadimos el popup al contenedor principal.
+                    that.container.appendChild(that.popup.container);
+                },
+
+                /**
+                 * @name showVictoryPopup
+                 * @description Muestra el mensaje de victoria.
+                 * @param {number} gameBoardChecks - Número de comprobaciones que ha realizado el usuario en la partida.
+                 */
+                showVictoryPopup: function (gameBoardChecks) {
+                    var message = "<h2>¡Has completado el tablero!</h2>";
+                    //message += "<table class='results'><tr><td>Comprobaciones</td><td>0</td></tr><tr><td>Tiempo</td><td>00:00:00</td></tr></table>";
+                    message += "<div class='result'><div>Comprobaciones:</div><div>" + gameBoardChecks + "</div></div>";
+                    message += "<div class='result'><div>Tiempo de juego:</div><div>" + this.timer.innerHTML + "</div></div>";
+
+                    this.popup.message.innerHTML = message;
+                    this.popup.container.style.display = "";
                 }
             };
         })();
@@ -760,6 +845,8 @@
             // Variables públicas.
             this.board = new Array(9);
             this.gameBoard = new Array(9);
+            this.gameBoardChecked = 0;
+            this.gameOver = false;
 
             // Inicializamos los elementos del DOM.
             Dom.initContainer(this, container);
@@ -933,6 +1020,11 @@
                     throw Error("JSudoku -> Es necesario que especifique una dificultad válida para poder jugar.");
             }
 
+            // Reestablecemos las comprobaciones del tablero de juego.
+            this.gameBoardChecked = 0;
+            this.gameOver = false;
+
+            // Pintamos el tablero de juego en pantalla.
             Dom.paintBoard(this.gameBoard);
         };
 
@@ -942,6 +1034,8 @@
          * @returns {boolean} Retorna "true" si el tablero de juego está correcto o "false" en caso de que no lo esté.
          */
         Sudoku.prototype.isGameBoardCleared = function () {
+            if (this.gameOver) return true;
+
             for (var y = 0; y < this.board.length; y++) {
                 for (var x = 0; x < this.board[y].length; x++) {
                     var value = w.parseInt(this.gameBoard[y][x]);
@@ -955,14 +1049,39 @@
             return true;
         };
 
-        Sudoku.prototype.checkCells = function () {
-            // TODO: Comprobar si las celdas que se han especificado son correctas o no.
-            // TODO: Si las celdas especificadas son correctas se tienen que cambiar su color de texto a un color verde.
-            // TODO: Las celdas que sean correctar se les tiene que asignar la clase "blocked" para que ya no se puedan modificar.
-            console.log(this.gameBoard);
+        /**
+         * @name checkCells
+         * @description Valida y bloquea las celdas del tablero de juego cuyo valor sea correcto.
+         * @param {boolean | undefined} ignoreCounter - Si es "true" entonces no incrementará el contador de intentos.
+         */
+        Sudoku.prototype.checkCells = function (ignoreCounter) {
+            if (this.gameOver) return;
+
+            // Incrementamos el contador de comprobaciones si es necesario.
+            if (!ignoreCounter) {
+                this.gameBoardChecked++;
+            }
+
+            // Recorremos el tablero de juego para comprobar las celdas.
+            for (var y = 0; y < this.board.length; y++) {
+                for (var x = 0; x < this.board[y].length; x++) {
+                    var value = w.parseInt(this.gameBoard[y][x]);
+
+                    // Si el valor de la celda es correcto y no es una celda ya bloqueada, bloqueamos la celda y la ponemos como una celda válida.
+                    if (!w.Array.isArray(this.gameBoard[y][x]) && !w.isNaN(value) && this.board[y][x] === value && typeof(this.gameBoard[y][x]) === "string") {
+                        // Bloqueamos y validamos la celda.
+                        Dom.setBlockedCell(x, y);
+
+                        // Asignamos a la celda el mismo valor, pero en formato entero.
+                        this.gameBoard[y][x] = value;
+                    }
+                }
+            }
         };
 
         Sudoku.prototype.resolveGameBoard = function () {
+            if (this.gameOver) return;
+
             // TODO: Resolver el tablero.
             // TODO: Parar el contador en el caso de que esté activo.
             // TODO: El jugador no gana la partida.
@@ -978,14 +1097,20 @@
         };
 
         Sudoku.prototype.startTimer = function () {
+            if (this.gameOver) return;
+
             // TODO: Iniciar contador.
         };
 
         Sudoku.prototype.pauseTimer = function () {
+            if (this.gameOver) return;
+
             // TODO: Pausar contador.
         };
 
         Sudoku.prototype.resetTimer = function () {
+            if (this.gameOver) return;
+
             // TODO: reiniciar contador.
         };
 
