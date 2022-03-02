@@ -800,7 +800,7 @@
                         cell.children[0].style.display = "";
                     }
 
-                    if (typeof(value) !== "undefined") {
+                    if (typeof (value) !== "undefined") {
                         // Convertimos el valor a una cadena de texto.
                         value = w.String(value);
 
@@ -869,6 +869,17 @@
                     for (var i = 0; i < cells.length; i++) {
                         cells[i].classList.remove("selected-values");
                     }
+                },
+
+                /**
+                 * @name setTime
+                 * @description Asigna eñ valor proporcionado al contador en caso de que sea diferente al valor actual.
+                 * @param {string} time - Valor a especificar al contador.
+                 */
+                setTime: function (time) {
+                    if (this.timer.innerHTML !== time) {
+                        this.timer.innerHTML = time;
+                    }
                 }
             };
         })();
@@ -882,6 +893,9 @@
             this.gameBoard = new Array(9);
             this.gameBoardChecked = 0;
             this.gameOver = false;
+            this.timerInterval = undefined;
+            this.timerStartDate = 0;
+            this.timerPauseDate = 0;
 
             // Inicializamos los elementos del DOM.
             Dom.initContainer(this, container);
@@ -1104,14 +1118,14 @@
                     var value = w.parseInt(this.gameBoard[y][x]);
 
                     // Si el valor de la celda es correcto y no es una celda ya bloqueada, bloqueamos la celda y la ponemos como una celda válida.
-                    if (!w.Array.isArray(this.gameBoard[y][x]) && !w.isNaN(value) && this.board[y][x] === value && typeof(this.gameBoard[y][x]) === "string") {
+                    if (!w.Array.isArray(this.gameBoard[y][x]) && !w.isNaN(value) && this.board[y][x] === value && typeof (this.gameBoard[y][x]) === "string") {
                         // Bloqueamos y validamos la celda.
                         Dom.setBlockedCell(x, y, true, undefined);
 
                         // Asignamos a la celda el mismo valor, pero en formato entero.
                         this.gameBoard[y][x] = value;
                     }
-                    else if (resolveBoard && (w.Array.isArray(this.gameBoard[y][x]) || typeof(this.gameBoard[y][x]) === "string")) {
+                    else if (resolveBoard && (w.Array.isArray(this.gameBoard[y][x]) || typeof (this.gameBoard[y][x]) === "string")) {
                         // Bloqueamos la celda, la invalidamos y le asignamos el valor correcto.
                         Dom.setBlockedCell(x, y, false, this.board[y][x]);
 
@@ -1128,7 +1142,7 @@
          */
         Sudoku.prototype.resolveGameBoard = function () {
             if (this.gameOver) return;
-            
+
             // Paramos el contador.
             this.pauseTimer();
 
@@ -1153,22 +1167,74 @@
             // TODO: Asignar las opciones del menú principal (básicamente, la dificultad seleccionada).
         };
 
+        /**
+         * @name startTimer
+         * @description Pone en marcha el intervalo para que funcione el temporizador.
+         */
         Sudoku.prototype.startTimer = function () {
             if (this.gameOver) return;
 
-            // TODO: Iniciar contador.
+            var that = this;
+
+            if (!that.timerInterval) {
+                if (!that.timerStartDate) {
+                    // Inicializamos la fecha de inicio en caso de que no lo esté.
+                    that.timerStartDate = new Date();
+                }
+                else if (that.timerPauseDate) {
+                    // Sumamos la diferencia de tiempo en caso de reanudar un temporizador pausado.
+                    that.timerStartDate = new Date(that.timerStartDate.setMilliseconds(new Date() - that.timerPauseDate));
+                }
+
+                // Creamos el intervalo del temporizador.
+                that.timerInterval = w.setInterval(function () {
+                    // Cogemos la fecha actual menos la fecha de inicio para saber las horas, minutos y segundos que lleva la partida en marcha.
+                    var diffDate = new Date(w.parseFloat(new Date() - that.timerStartDate));
+
+                    // Cogemos las horas, los minutos y los segundos con dos dígitos.
+                    var hours = diffDate.getUTCHours().toLocaleString(undefined, { minimumIntegerDigits: 2 }),
+                        minutes = diffDate.getUTCMinutes().toLocaleString(undefined, { minimumIntegerDigits: 2 }),
+                        seconds = diffDate.getUTCSeconds().toLocaleString(undefined, { minimumIntegerDigits: 2 });
+
+                    // Especificamos el tiempo por pantalla.
+                    Dom.setTime(hours + ":" + minutes + ":" + seconds);
+                }, 500);
+            }
         };
 
+        /**
+         * @name pauseTimer
+         * @description Pone en pausa el temporizador.
+         */
         Sudoku.prototype.pauseTimer = function () {
             if (this.gameOver) return;
 
-            // TODO: Pausar contador.
+            // Guardamos la fecha a la que ha sido pausado el temporizador para utilizarla posteriormente cuando éste se reanude.
+            this.timerPauseDate = new Date();
+
+            // Limpiamos el intervalo del temporizador.
+            w.clearInterval(this.timerInterval);
+            this.timerInterval = 0;
+
         };
 
+        /**
+         * @name resetTimer
+         * @description Restablece el temporizador a cero y lo para.
+         */
         Sudoku.prototype.resetTimer = function () {
             if (this.gameOver) return;
 
-            // TODO: reiniciar contador.
+            // Limpiamos el intervalo del temporizador para pararlo.
+            w.clearInterval(this.timerInterval);
+            this.timerInterval = 0;
+
+            // Restablecemos las fechas del temporizador.
+            this.timerStartDate = undefined;
+            this.timerPauseDate = undefined;
+
+            // Especificamos el tiempo de inicio por pantalla.
+            Dom.setTime("00:00:00");
         };
 
         return Sudoku;
