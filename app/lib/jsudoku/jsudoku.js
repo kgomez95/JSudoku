@@ -227,7 +227,7 @@
 
                         // Creamos el botón de comprobar tablero.
                         container.appendChild(createButton("Comprobar", function () {
-                            that.sudoku.checkCells(false);
+                            that.sudoku.checkCells(false, false);
                         }));
 
                         // Creamos el botón de resolver el tablero.
@@ -456,7 +456,7 @@
                      * @description Selecciona las celdas de valores marcadas. 
                      */
                     function selectValues() {
-                        if (!selectedValues) return;
+                        if (!selectedValues || that.sudoku.gameOver) return;
 
                         for (var i = 0; i < selectedValues.length; i++) {
                             if (that.selectedCell !== selectedValues[i]) {
@@ -759,10 +759,11 @@
                  */
                 checkGameBoard: function () {
                     if (this.sudoku.isGameBoardCleared()) {
-                        // TODO: Parar el contador en el caso de que esté activo.
+                        // Paramos el contador.
+                        this.sudoku.pauseTimer();
 
                         // Comprobamos las celdas del tablero, pero sin incrementar el contador de comprobaciones.
-                        this.sudoku.checkCells(true);
+                        this.sudoku.checkCells(true, false);
 
                         // Indicamos el fin de la partida.
                         this.sudoku.gameOver = true;
@@ -774,16 +775,38 @@
 
                 /**
                  * @name setBlockedCell
-                 * @description Bloquea la celda proporcionada y la pone como válida.
+                 * @description Bloquea la celda proporcionada y la pone como válida o inválida dependiendo de los parámetros recibidos.
                  * @param {number} x - Posición horizontal de la celda.
                  * @param {number} y - Posición vertical de la celda.
+                 * @param {boolean} isValid - Indica si la celda ha sido indicada por el usuario o no.
+                 * @param {string | number | undefined} value - Indica si la celda ha sido indicada por el usuario o no.
                  */
-                setBlockedCell: function (x, y) {
+                setBlockedCell: function (x, y, isValid, value) {
+                    // Buscamos la celda.
                     var cell = this.table.querySelector("[data-x='" + x + "'][data-y='" + y + "']");
 
-                    if (cell && !cell.classList.contains("blocked")) {
+                    if (cell && !cell.classList.contains("blocked") && isValid) {
+                        // Bloqueamos y validamos la celda.
                         cell.classList.add("blocked");
                         cell.classList.add("valid");
+                    }
+                    else if (cell && !cell.classList.contains("blocked") && !isValid) {
+                        // Bloqueamos e invalidamos la celda.
+                        cell.classList.add("blocked");
+                        cell.classList.add("invalid");
+
+                        // Ocultamos las notas y mostramos el contenido de la celda.
+                        cell.children[1].style.display = "none";
+                        cell.children[0].style.display = "";
+                    }
+
+                    if (typeof(value) !== "undefined") {
+                        // Convertimos el valor a una cadena de texto.
+                        value = w.String(value);
+
+                        // Especificamos el valor a la celda.
+                        cell.setAttribute("data-value", value);
+                        cell.children[0].innerHTML = value;
                     }
                 },
 
@@ -834,6 +857,18 @@
 
                     this.popup.message.innerHTML = message;
                     this.popup.container.style.display = "";
+                },
+
+                /**
+                 * @name deselectValues
+                 * @description Busca los valores seleccionados en el tablero y los deselecciona.
+                 */
+                deselectValues: function () {
+                    var cells = this.table.querySelectorAll(".selected-values");
+
+                    for (var i = 0; i < cells.length; i++) {
+                        cells[i].classList.remove("selected-values");
+                    }
                 }
             };
         })();
@@ -1052,9 +1087,10 @@
         /**
          * @name checkCells
          * @description Valida y bloquea las celdas del tablero de juego cuyo valor sea correcto.
-         * @param {boolean | undefined} ignoreCounter - Si es "true" entonces no incrementará el contador de intentos.
+         * @param {boolean} ignoreCounter - Si es "true" entonces no incrementará el contador de intentos.
+         * @param {boolean} resolveBoard - Si es "true" entonces las celdas que no sean correctas se solucionarán, pero se marcarán como no resueltas.
          */
-        Sudoku.prototype.checkCells = function (ignoreCounter) {
+        Sudoku.prototype.checkCells = function (ignoreCounter, resolveBoard) {
             if (this.gameOver) return;
 
             // Incrementamos el contador de comprobaciones si es necesario.
@@ -1070,30 +1106,51 @@
                     // Si el valor de la celda es correcto y no es una celda ya bloqueada, bloqueamos la celda y la ponemos como una celda válida.
                     if (!w.Array.isArray(this.gameBoard[y][x]) && !w.isNaN(value) && this.board[y][x] === value && typeof(this.gameBoard[y][x]) === "string") {
                         // Bloqueamos y validamos la celda.
-                        Dom.setBlockedCell(x, y);
+                        Dom.setBlockedCell(x, y, true, undefined);
 
                         // Asignamos a la celda el mismo valor, pero en formato entero.
                         this.gameBoard[y][x] = value;
+                    }
+                    else if (resolveBoard && (w.Array.isArray(this.gameBoard[y][x]) || typeof(this.gameBoard[y][x]) === "string")) {
+                        // Bloqueamos la celda, la invalidamos y le asignamos el valor correcto.
+                        Dom.setBlockedCell(x, y, false, this.board[y][x]);
+
+                        // Asignamos a la celda el valor correcto.
+                        this.gameBoard[y][x] = this.board[y][x];
                     }
                 }
             }
         };
 
+        /**
+         * @name resolveGameBoard
+         * @description Resuelve el tablero de juego, pero invalida las celdas que no tengan el valor correcto, por tanto, el usuario pierde la partida.
+         */
         Sudoku.prototype.resolveGameBoard = function () {
             if (this.gameOver) return;
+            
+            // Paramos el contador.
+            this.pauseTimer();
 
-            // TODO: Resolver el tablero.
-            // TODO: Parar el contador en el caso de que esté activo.
-            // TODO: El jugador no gana la partida.
+            // Resolvemos el tablero.
+            this.checkCells(false, true);
+
+            // Finalizamos la partida.
+            this.gameOver = true;
+
+            // Deseleccionamos los valores que estén marcados.
+            Dom.deselectValues();
         };
 
         Sudoku.prototype.saveGame = function () {
-            // TODO: Guardar la partida en el localStorage.
+            // TODO: Guardar la partida, el contador y las opciones del menú principal en el localStorage.
         };
 
         Sudoku.prototype.loadGame = function () {
-            // TODO: Cargar la partida del localStorage.
+            // TODO: Cargar los datos del localStorage.
             // TODO: Construir el tablero de juego en base a los datos cargados.
+            // TODO: Asignar los datos del contador (tiempo, si estaba pausado o no, etc).
+            // TODO: Asignar las opciones del menú principal (básicamente, la dificultad seleccionada).
         };
 
         Sudoku.prototype.startTimer = function () {

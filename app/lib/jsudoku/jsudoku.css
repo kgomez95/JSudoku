@@ -134,6 +134,10 @@
     color: #00a36c;
 }
 
+.jsudoku td .content.invalid {
+    color: #c7062e !important;
+}
+
 .jsudoku td .content.selected,
 .jsudoku td .content-notes.selected {
     background-color: #8db9ca;
