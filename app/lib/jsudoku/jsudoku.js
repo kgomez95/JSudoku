@@ -860,6 +860,16 @@
                 },
 
                 /**
+                 * @name showMessagePopup
+                 * @description Muestra el popup con el mensaje recibido por parámetros.
+                 * @param {string} message - Mensaje a mostrar.
+                 */
+                showMessagePopup: function (message) {
+                    this.popup.message.innerHTML = "<p>" + message + "</p>";
+                    this.popup.container.style.display = "";
+                },
+
+                /**
                  * @name deselectValues
                  * @description Busca los valores seleccionados en el tablero y los deselecciona.
                  */
@@ -880,6 +890,21 @@
                     if (this.timer.innerHTML !== time) {
                         this.timer.innerHTML = time;
                     }
+                },
+
+                /**
+                 * @name getSaveElements
+                 * @description Coge todos los elementos que se tengan que guardar.
+                 * @returns Retorna los elementos que se guardarán.
+                 */
+                getSaveElements: function () {
+                    var that = this;
+                    var difficulty = w.document.querySelector("[name='difficulty']:checked");
+
+                    return {
+                        difficulty:(difficulty) ? difficulty.value : undefined,
+                        timer: that.timer.innerHTML
+                    };
                 }
             };
         })();
@@ -1156,8 +1181,30 @@
             Dom.deselectValues();
         };
 
+        /**
+         * @name saveGame
+         * @description Guarda la partida actual en el localStorage.
+         */
         Sudoku.prototype.saveGame = function () {
-            // TODO: Guardar la partida, el contador y las opciones del menú principal en el localStorage.
+            if (this.gameOver) {
+                // Si la partida ya ha finalizado mostramos un mensaje indicando que no se puede guardar la partida.
+                Dom.showMessagePopup("No es posible guardar la partida cuando ésta ya ha finalizado.");
+                return;
+            }
+
+            var that = this;
+
+            // Cogemos todos los elementos a guardar.
+            var game = {
+                mainMenu: Dom.getSaveElements(),
+                board: that.board,
+                gameBoard: that.gameBoard,
+                timerPauseDate: that.timerPauseDate,
+                timerStartDate: that.timerStartDate,
+            };
+
+            // Guardamos la partida en el localStorage.
+            w.localStorage.setItem("jsudoku-game", w.JSON.stringify(game));
         };
 
         Sudoku.prototype.loadGame = function () {
