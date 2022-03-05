@@ -352,6 +352,9 @@
                             var td = w.document.createElement("td");
                             var content = w.document.createElement("div");
 
+                            // Cogemos el valor de la posición del tablero, y en caso de que no sea un número cogemos un valor vacío.
+                            var boardGameValue = (!w.isNaN(w.parseInt(boardGame[y][x])) && !w.Array.isArray(boardGame[y][x])) ? boardGame[y][x] : "";
+
                             if ((x % 3) === 0) {
                                 groupX++;
                             }
@@ -359,16 +362,16 @@
                             // Creamos el contenido.
                             content.classList.add("content");
                             var span = w.document.createElement("span");
-                            span.appendChild(w.document.createTextNode(boardGame[y][x]));
+                            span.appendChild(w.document.createTextNode(boardGameValue));
                             content.appendChild(span);
                             content.setAttribute("data-x", x.toString());
                             content.setAttribute("data-y", y.toString());
                             content.setAttribute("data-group", (groupY + groupX).toString());
-                            content.setAttribute("data-value", boardGame[y][x]);
+                            content.setAttribute("data-value", boardGameValue);
                             content.setAttribute("tabindex", "1");
 
                             // Si la celda tiene valor entonces bloqueamos su contenido.
-                            if (boardGame[y][x]) {
+                            if (boardGameValue && typeof(boardGame[y][x]) === "number") {
                                 content.classList.add("blocked");
                             }
                             else {
@@ -902,9 +905,24 @@
                     var difficulty = w.document.querySelector("[name='difficulty']:checked");
 
                     return {
-                        difficulty:(difficulty) ? difficulty.value : undefined,
+                        difficulty: (difficulty) ? difficulty.value : undefined,
                         timer: that.timer.innerHTML
                     };
+                },
+
+                /**
+                 * @name setDifficulty
+                 * @description Selecciona la dificultad especificada por parámetros.
+                 * @param {string} value - Dificultad a seleccionar.
+                 */
+                setDifficulty: function (value) {
+                    // Buscamos el radio button de la dificultad que venga por parámetros.
+                    var element = w.document.querySelector("[name='difficulty'][value='" + value + "']");
+
+                    if (element) {
+                        // Seleccionamos el radio button si éste existe.
+                        element.checked = true;
+                    }
                 }
             };
         })();
@@ -1199,19 +1217,51 @@
                 mainMenu: Dom.getSaveElements(),
                 board: that.board,
                 gameBoard: that.gameBoard,
-                timerPauseDate: that.timerPauseDate,
+                gameBoardChecked: that.gameBoardChecked,
                 timerStartDate: that.timerStartDate,
+                diffDate: new Date()
             };
 
             // Guardamos la partida en el localStorage.
             w.localStorage.setItem("jsudoku-game", w.JSON.stringify(game));
         };
 
+        /**
+         * @name loadGame
+         * @description Carga la partida que esté guardada en el localStorage.
+         */
         Sudoku.prototype.loadGame = function () {
-            // TODO: Cargar los datos del localStorage.
-            // TODO: Construir el tablero de juego en base a los datos cargados.
-            // TODO: Asignar los datos del contador (tiempo, si estaba pausado o no, etc).
-            // TODO: Asignar las opciones del menú principal (básicamente, la dificultad seleccionada).
+            // Cargamos la partida guardada de localStorage.
+            var item = w.localStorage.getItem("jsudoku-game");
+
+            if (item) {
+                // Parseamos a JSON la partida guardada.
+                var game = w.JSON.parse(item);
+
+                // Parseamos la fecha de inicio del contador para después sumarle la diferencia de fechas, para que así el contador
+                // pueda continuar por donde se quedó.
+                var startDate = (game.timerStartDate) ? new Date(game.timerStartDate) : undefined;
+
+                // Asignamos los valores cargados.
+                this.board = game.board;
+                this.gameBoard = game.gameBoard;
+                this.gameBoardChecked = game.gameBoardChecked;
+                this.timerStartDate = (startDate) ? new Date(startDate.setMilliseconds(new Date() - new Date(game.diffDate))) : startDate;
+                this.timerPauseDate = new Date();
+                Dom.setTime(game.mainMenu.timer);
+                Dom.setDifficulty(game.mainMenu.difficulty);
+
+                // Reestablecemos las comprobaciones del tablero de juego.
+                this.gameOver = false;
+
+                // Pintamos el tablero de juego en pantalla.
+                Dom.paintBoard(this.gameBoard);
+
+                // TODO: Activar todas las notas que hayan en el tablero.
+
+                // TODO: Ahora cuando se carga una celda ya validada se pone como bloqueada, pero sin el color verde. Hay que encontrar
+                //       alguna forma de que las celdas que ya estuvieran validadas vuelvan a salir en color verde.
+            }
         };
 
         /**
@@ -1245,7 +1295,7 @@
 
                     // Especificamos el tiempo por pantalla.
                     Dom.setTime(hours + ":" + minutes + ":" + seconds);
-                }, 500);
+                }, 1);
             }
         };
 
