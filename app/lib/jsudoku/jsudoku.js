@@ -1,8 +1,8 @@
 /*!
- * JSudoku v0.1
+ * JSudoku v0.9
  *
  * Autor: Kevin Gómez Codina
- * Date: 2022-02-16T07:45Z
+ * Date: 2022-03-06T09:43Z
  */
 //@ts-check
 "use strict";
@@ -329,12 +329,14 @@
                      * @name createNote
                      * @description Crea un contenedor nota con el número especificado.
                      * @param {number} value - Número a especificar en el contenedor nota.
+                     * @param {boolean} showNote - Indica si es necesario mostrar la nota o no.
                      * @returns {Element} Retorna el contenedor nota con el número asignado.
                      */
-                    function createNote(value) {
+                    function createNote(value, showNote) {
                         var div = w.document.createElement("div");
                         div.setAttribute("data-value", value.toString());
-                        div.style.display = "none";
+                        if (!showNote)
+                            div.style.display = "none";
                         div.classList.add("note" + value);
                         div.appendChild(w.document.createTextNode(value.toString()));
                         return div;
@@ -352,8 +354,11 @@
                             var td = w.document.createElement("td");
                             var content = w.document.createElement("div");
 
+                            // Comprobamos si la celda del tablero de juego es un array, es decir, comprobamos si tiene notas activas.
+                            var isArray = w.Array.isArray(boardGame[y][x]);
+
                             // Cogemos el valor de la posición del tablero, y en caso de que no sea un número cogemos un valor vacío.
-                            var boardGameValue = (!w.isNaN(w.parseInt(boardGame[y][x])) && !w.Array.isArray(boardGame[y][x])) ? boardGame[y][x] : "";
+                            var boardGameValue = (!w.isNaN(w.parseInt(boardGame[y][x])) && !isArray) ? boardGame[y][x] : "";
 
                             if ((x % 3) === 0) {
                                 groupX++;
@@ -382,11 +387,25 @@
 
                                 // Creamos los elementos en el contenedor de notas.
                                 for (var i = 1; i <= 9; i++) {
-                                    contentNotes.appendChild(createNote(i));
+                                    var showNote = false;
+
+                                    // Si la celda tiene un array como valor significa que tiene notas, por tanto, mostramos la nota.
+                                    if (isArray) {
+                                        showNote = boardGame[y][x].indexOf(i) > -1;
+                                    }
+
+                                    contentNotes.appendChild(createNote(i, showNote));
                                 }
 
-                                // Ocultamos el contenedor de notas y lo añadimos al contenedor del contenido.
-                                contentNotes.style.display = "none";
+                                // Ocultamos el contenedor de notas en caso de que no haya notas visibles u ocultamos el span del valor de la celda.
+                                if (!isArray) {
+                                    contentNotes.style.display = "none";
+                                }
+                                else {
+                                    span.style.display = "none";
+                                }
+                                    
+                                // Añadimos el contenedor de notas al contenedor del contenido.
                                 content.appendChild(contentNotes);
                             }
 
@@ -1167,6 +1186,9 @@
 
                         // Asignamos a la celda el mismo valor, pero en formato entero.
                         this.gameBoard[y][x] = value;
+
+                        // TODO: Hacer algo aquí para indentificar las celdas que están validadas, para que cuando se cargue la partida estas celdas ya estén bloqueadas
+                        //       y de color verde.
                     }
                     else if (resolveBoard && (w.Array.isArray(this.gameBoard[y][x]) || typeof (this.gameBoard[y][x]) === "string")) {
                         // Bloqueamos la celda, la invalidamos y le asignamos el valor correcto.
@@ -1256,8 +1278,6 @@
 
                 // Pintamos el tablero de juego en pantalla.
                 Dom.paintBoard(this.gameBoard);
-
-                // TODO: Activar todas las notas que hayan en el tablero.
 
                 // TODO: Ahora cuando se carga una celda ya validada se pone como bloqueada, pero sin el color verde. Hay que encontrar
                 //       alguna forma de que las celdas que ya estuvieran validadas vuelvan a salir en color verde.
