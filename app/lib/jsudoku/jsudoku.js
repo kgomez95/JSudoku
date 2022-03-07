@@ -358,7 +358,7 @@
                             var isArray = w.Array.isArray(boardGame[y][x]);
 
                             // Cogemos el valor de la posición del tablero, y en caso de que no sea un número cogemos un valor vacío.
-                            var boardGameValue = (!w.isNaN(w.parseInt(boardGame[y][x])) && !isArray) ? boardGame[y][x] : "";
+                            var boardGameValue = (!w.isNaN(w.parseInt(boardGame[y][x])) && !isArray) ? w.parseInt(boardGame[y][x]).toString() : "";
 
                             if ((x % 3) === 0) {
                                 groupX++;
@@ -378,6 +378,10 @@
                             // Si la celda tiene valor entonces bloqueamos su contenido.
                             if (boardGameValue && typeof(boardGame[y][x]) === "number") {
                                 content.classList.add("blocked");
+                            }
+                            else if (boardGame[y][x].indexOf("v") > -1) {
+                                content.classList.add("blocked");
+                                content.classList.add("valid");
                             }
                             else {
                                 var contentNotes = w.document.createElement("div");
@@ -1180,15 +1184,12 @@
                     var value = w.parseInt(this.gameBoard[y][x]);
 
                     // Si el valor de la celda es correcto y no es una celda ya bloqueada, bloqueamos la celda y la ponemos como una celda válida.
-                    if (!w.Array.isArray(this.gameBoard[y][x]) && !w.isNaN(value) && this.board[y][x] === value && typeof (this.gameBoard[y][x]) === "string") {
+                    if (!w.Array.isArray(this.gameBoard[y][x]) && !w.isNaN(value) && this.board[y][x] === value && typeof (this.gameBoard[y][x]) === "string" && this.gameBoard[y][x].indexOf("v") === -1) {
                         // Bloqueamos y validamos la celda.
                         Dom.setBlockedCell(x, y, true, undefined);
 
-                        // Asignamos a la celda el mismo valor, pero en formato entero.
-                        this.gameBoard[y][x] = value;
-
-                        // TODO: Hacer algo aquí para indentificar las celdas que están validadas, para que cuando se cargue la partida estas celdas ya estén bloqueadas
-                        //       y de color verde.
+                        // Asignamos a la celda el mismo valor, pero añadiéndole una "v" para indicar que la celda está validada.
+                        this.gameBoard[y][x] += "v";
                     }
                     else if (resolveBoard && (w.Array.isArray(this.gameBoard[y][x]) || typeof (this.gameBoard[y][x]) === "string")) {
                         // Bloqueamos la celda, la invalidamos y le asignamos el valor correcto.
@@ -1278,9 +1279,6 @@
 
                 // Pintamos el tablero de juego en pantalla.
                 Dom.paintBoard(this.gameBoard);
-
-                // TODO: Ahora cuando se carga una celda ya validada se pone como bloqueada, pero sin el color verde. Hay que encontrar
-                //       alguna forma de que las celdas que ya estuvieran validadas vuelvan a salir en color verde.
             }
         };
 
