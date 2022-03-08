@@ -1,8 +1,8 @@
 /*!
- * JSudoku v0.9
+ * JSudoku v1.0
  *
  * Autor: Kevin Gómez Codina
- * Date: 2022-03-06T09:43Z
+ * Date: 2022-03-07T07:58Z
  */
 //@ts-check
 "use strict";

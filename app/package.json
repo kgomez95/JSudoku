@@ -1,0 +1,22 @@
+{
+  "name": "jsudoku",
+  "version": "1.0.0",
+  "description": "Sudoku programado en HTML, CSS y JavaScript.",
+  "main": "index.html",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "build": "npm run uglify && npm run cssmin",
+    "cssmin": "grunt cssmin:jsudoku",
+    "uglify": "grunt uglify:jsudoku"
+  },
+  "author": "Kevin Gómez Codina",
+  "license": "ISC",
+  "devDependencies": {
+    "grunt": "^1.4.1",
+    "grunt-cli": "^1.4.3",
+    "grunt-contrib-cssmin": "^4.0.0",
+    "grunt-contrib-uglify": "^5.0.1"
+  }
+}
